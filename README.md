@@ -6,6 +6,10 @@ Aplicação simples de lista de tarefas (to-do list) feita com HTML, CSS e JavaS
 
 Uma interface leve para adicionar e remover tarefas do dia a dia. As tarefas ficam salvas no `localStorage`, então continuam disponíveis mesmo depois de fechar ou atualizar a página.
 
+## ⚔️ Melhorias
+
+Ainda irei adicionar botão de editar e estou pensando em adicionar para colocar horário
+
 ## ✨ Funcionalidades
 
 - Adicionar novas tarefas pelo botão **Adicionar** ou pressionando **Enter**
