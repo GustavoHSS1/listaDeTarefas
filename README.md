@@ -33,7 +33,7 @@ lista-tarefas/
 
 1. Clone este repositório:
    ```bash
-   git clone <url-do-repositorio>
+   git clone https://github.com/GustavoHSS1/listaDeTarefas
    ```
 2. Acesse a pasta do projeto:
    ```bash
