@@ -193,7 +193,6 @@ button:active {
 .botao-editar {
     background: var(--editar-bg);
     color: var(--editar-text);
-    margin-right: 8px;
     flex-shrink: 0;
 }
 
@@ -231,15 +230,29 @@ ul {
 li {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 14px;
     animation: entrada 0.15s ease;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.info-tarefa {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.acoes-tarefa {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 li span {
@@ -256,7 +269,7 @@ li span {
     padding: 4px 8px;
     border-radius: 6px;
     margin-right: 10px;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     white-space: nowrap;
 }
 
@@ -343,20 +356,24 @@ li span {
         width: 100%;
     }
 
-    /* botões Editar/Remover quebram para uma segunda linha,
-       ocupando metade da largura cada um, lado a lado */
+    /* item da lista empilhado: 1) hora+texto, 2) Editar, 3) Remover */
+    li {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .acoes-tarefa {
+        flex-direction: column;
+        width: 100%;
+    }
+
     .botao-editar,
     .botao-remover {
-        flex: 1 1 calc(50% - 4px);
+        width: 100%;
         text-align: center;
     }
 
-    .botao-editar {
-        margin-right: 0;
-    }
-
-    /* inputs de edição ocupam a linha toda em telas pequenas,
-       em vez de ficarem espremidos ao lado um do outro */
+    /* inputs de edição ocupam a linha toda em telas pequenas */
     .input-edicao-hora,
     .input-edicao {
         flex: 1 1 100%;

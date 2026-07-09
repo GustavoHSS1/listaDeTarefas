@@ -114,7 +114,7 @@ function removerTarefa(indiceOriginal) {
    7. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
    ========================================================================== */
 
-function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice }) {
+function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice }) {
     const inputEdicaoHora = document.createElement('input');
     inputEdicaoHora.type = 'time';
     inputEdicaoHora.value = tarefa.hora || '';
@@ -125,8 +125,8 @@ function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, bot
     inputEdicaoTexto.value = tarefa.texto;
     inputEdicaoTexto.className = 'input-edicao';
 
-    itemLista.replaceChild(inputEdicaoHora, horaTarefa);
-    itemLista.replaceChild(inputEdicaoTexto, textoTarefa);
+    infoTarefa.replaceChild(inputEdicaoHora, horaTarefa);
+    infoTarefa.replaceChild(inputEdicaoTexto, textoTarefa);
     botaoEditar.textContent = 'Salvar';
     botaoEditar.dataset.editing = 'true';
     botaoRemover.style.display = 'none'; // esconde o Remover durante a edição
@@ -139,7 +139,7 @@ function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, bot
 
     const mostrarErroEdicao = () => {
         inputEdicaoHora.classList.add('campo-invalido');
-        if (!avisoEdicao.isConnected) itemLista.appendChild(avisoEdicao);
+        if (!avisoEdicao.isConnected) acoesTarefa.appendChild(avisoEdicao);
     };
 
     const esconderErroEdicao = () => {
@@ -184,12 +184,21 @@ function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, bot
 function criarItemTarefa(tarefa, indice) {
     const itemLista = document.createElement('li');
 
+    const infoTarefa = document.createElement('div');
+    infoTarefa.className = 'info-tarefa';
+
     const horaTarefa = document.createElement('span');
     horaTarefa.className = 'hora-tarefa';
     horaTarefa.textContent = tarefa.hora || '--:--';
 
     const textoTarefa = document.createElement('span');
     textoTarefa.textContent = tarefa.texto;
+
+    infoTarefa.appendChild(horaTarefa);
+    infoTarefa.appendChild(textoTarefa);
+
+    const acoesTarefa = document.createElement('div');
+    acoesTarefa.className = 'acoes-tarefa';
 
     const botaoEditar = document.createElement('button');
     botaoEditar.textContent = 'Editar';
@@ -200,15 +209,16 @@ function criarItemTarefa(tarefa, indice) {
     botaoRemover.className = 'botao-remover';
     botaoRemover.onclick = () => removerTarefa(indice);
 
+    acoesTarefa.appendChild(botaoEditar);
+    acoesTarefa.appendChild(botaoRemover);
+
     botaoEditar.onclick = () => {
         if (botaoEditar.dataset.editing === 'true') return;
-        ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice });
+        ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice });
     };
 
-    itemLista.appendChild(horaTarefa);
-    itemLista.appendChild(textoTarefa);
-    itemLista.appendChild(botaoEditar);
-    itemLista.appendChild(botaoRemover);
+    itemLista.appendChild(infoTarefa);
+    itemLista.appendChild(acoesTarefa);
 
     return itemLista;
 }
