@@ -6,10 +6,33 @@ const entradaTarefa = document.getElementById('entradaTarefa');
 const entradaHora = document.getElementById('entradaHora');
 const botaoAdicionarTarefa = document.getElementById('botaoAdicionarTarefa');
 const listaTarefas = document.getElementById('listaTarefas');
+const botaoModoEscuro = document.getElementById('botaoModoEscuro');
+const avisoHora = document.getElementById('avisoHora');
 
 
 /* ==========================================================================
-   2. ARMAZENAMENTO (ler e salvar no localStorage)
+   2. MODO ESCURO (aplicar preferência salva e alternar ao clicar)
+   ========================================================================== */
+
+function aplicarModoEscuro(ativo) {
+    document.body.classList.toggle('modo-escuro', ativo);
+    botaoModoEscuro.textContent = ativo ? '☀️' : '🌙';
+}
+
+function alternarModoEscuro() {
+    const ativo = !document.body.classList.contains('modo-escuro');
+    aplicarModoEscuro(ativo);
+    localStorage.setItem('modoEscuro', ativo ? 'true' : 'false');
+}
+
+// aplica a preferência salva assim que a página carrega
+aplicarModoEscuro(localStorage.getItem('modoEscuro') === 'true');
+
+botaoModoEscuro.addEventListener('click', alternarModoEscuro);
+
+
+/* ==========================================================================
+   3. ARMAZENAMENTO (ler e salvar no localStorage)
    ========================================================================== */
 
 function obterTarefas() {
@@ -23,7 +46,29 @@ function salvarTarefas(tarefas) {
 
 
 /* ==========================================================================
-   3. ORDENAÇÃO (tarefas com hora aparecem antes, em ordem crescente)
+   4. VALIDAÇÃO DE HORÁRIO
+   ========================================================================== */
+
+function horaValida(hora) {
+    return typeof hora === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(hora);
+}
+
+function mostrarErroHora() {
+    entradaHora.classList.add('campo-invalido');
+    avisoHora.classList.add('mostrar');
+}
+
+function esconderErroHora() {
+    entradaHora.classList.remove('campo-invalido');
+    avisoHora.classList.remove('mostrar');
+}
+
+// assim que o usuário mexe no campo de novo, o aviso some
+entradaHora.addEventListener('input', esconderErroHora);
+
+
+/* ==========================================================================
+   5. ORDENAÇÃO (tarefas com hora aparecem antes, em ordem crescente)
    ========================================================================== */
 
 function ordenarPorHora(tarefas) {
@@ -36,13 +81,20 @@ function ordenarPorHora(tarefas) {
 
 
 /* ==========================================================================
-   4. AÇÕES SOBRE TAREFAS (adicionar / remover)
+   6. AÇÕES SOBRE TAREFAS (adicionar / remover)
    ========================================================================== */
 
 function adicionarTarefa(texto, hora) {
     if (!texto.trim()) return;
+
+    if (!horaValida(hora)) {
+        mostrarErroHora();
+        return;
+    }
+
+    esconderErroHora();
     const tarefas = obterTarefas();
-    tarefas.push({ texto: texto.trim(), hora: hora || '' });
+    tarefas.push({ texto: texto.trim(), hora });
     salvarTarefas(tarefas);
     renderizarTarefas();
     entradaTarefa.value = '';
@@ -59,7 +111,7 @@ function removerTarefa(indiceOriginal) {
 
 
 /* ==========================================================================
-   5. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
+   7. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
    ========================================================================== */
 
 function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice }) {
@@ -79,13 +131,35 @@ function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, bot
     botaoEditar.dataset.editing = 'true';
     botaoRemover.style.display = 'none'; // esconde o Remover durante a edição
 
+    const avisoEdicao = document.createElement('span');
+    avisoEdicao.className = 'aviso-erro-edicao';
+    avisoEdicao.textContent = 'Selecione um horário válido.';
+
     inputEdicaoTexto.focus();
+
+    const mostrarErroEdicao = () => {
+        inputEdicaoHora.classList.add('campo-invalido');
+        if (!avisoEdicao.isConnected) itemLista.appendChild(avisoEdicao);
+    };
+
+    const esconderErroEdicao = () => {
+        inputEdicaoHora.classList.remove('campo-invalido');
+        avisoEdicao.remove();
+    };
+
+    inputEdicaoHora.addEventListener('input', esconderErroEdicao);
 
     const salvarEdicao = () => {
         const novoTexto = inputEdicaoTexto.value.trim();
         if (!novoTexto) return;
+
+        if (!horaValida(inputEdicaoHora.value)) {
+            mostrarErroEdicao();
+            return;
+        }
+
         const tarefasAtual = obterTarefas();
-        tarefasAtual[indice] = { texto: novoTexto, hora: inputEdicaoHora.value || '' };
+        tarefasAtual[indice] = { texto: novoTexto, hora: inputEdicaoHora.value };
         salvarTarefas(tarefasAtual);
         renderizarTarefas();
     };
@@ -104,7 +178,7 @@ function ativarModoEdicao({ itemLista, horaTarefa, textoTarefa, botaoEditar, bot
 
 
 /* ==========================================================================
-   6. CRIAÇÃO DE CADA ITEM DA LISTA (elementos HTML de uma tarefa)
+   8. CRIAÇÃO DE CADA ITEM DA LISTA (elementos HTML de uma tarefa)
    ========================================================================== */
 
 function criarItemTarefa(tarefa, indice) {
@@ -141,7 +215,7 @@ function criarItemTarefa(tarefa, indice) {
 
 
 /* ==========================================================================
-   7. RENDERIZAÇÃO (desenha a lista inteira na tela)
+   9. RENDERIZAÇÃO (desenha a lista inteira na tela)
    ========================================================================== */
 
 function renderizarTarefas() {
@@ -167,7 +241,7 @@ function renderizarTarefas() {
 
 
 /* ==========================================================================
-   8. EVENTOS (clique no botão, tecla Enter no input)
+   10. EVENTOS (clique no botão, tecla Enter no input)
    ========================================================================== */
 
 botaoAdicionarTarefa.addEventListener('click', () => {
@@ -182,7 +256,7 @@ entradaTarefa.addEventListener('keydown', (evento) => {
 
 
 /* ==========================================================================
-   9. INICIALIZAÇÃO
+   11. INICIALIZAÇÃO
    ========================================================================== */
 
 renderizarTarefas();

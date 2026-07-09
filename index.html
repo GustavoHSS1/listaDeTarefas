@@ -8,12 +8,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>📝 Lista de Tarefas</h1>
+        <div class="cabecalho">
+            <h1>📝 Lista de Tarefas</h1>
+            <button id="botaoModoEscuro" aria-label="Alternar modo escuro" title="Alternar modo escuro">🌙</button>
+        </div>
         <div class="campo-adicionar">
             <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
-            <input type="time" id="entradaHora" placeholder="Hora">
+            <input type="time" id="entradaHora">
             <button id="botaoAdicionarTarefa">Adicionar</button>
         </div>
+        <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
         <ul id="listaTarefas"></ul>
     </div>
     <script src="script.js"></script>

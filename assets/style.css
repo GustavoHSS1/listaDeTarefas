@@ -12,6 +12,34 @@
     --danger: #ef4444;
     --danger-dark: #d63c3c;
     --border: #e5e7eb;
+
+    /* cores que antes estavam "fixas" nas regras, agora viram variáveis
+       para que o modo escuro consiga sobrescrevê-las facilmente */
+    --input-bg: #ffffff;
+    --editar-bg: #e6f9f0;
+    --editar-text: #059669;
+    --remover-bg: #fde8e8;
+    --remover-text: var(--danger);
+    --hora-bg: #eef1ff;
+}
+
+/* tema escuro: mesma lista de variáveis, valores diferentes.
+   Como são custom properties, tudo que já usa var(--xxx) se adapta sozinho. */
+body.modo-escuro {
+    --bg: #14161c;
+    --card: #1f232b;
+    --text: #e6e8eb;
+    --muted: #9aa2ad;
+    --border: #333844;
+    --primary: #6c8cff;
+    --primary-dark: #4f6fe0;
+
+    --input-bg: #262b33;
+    --editar-bg: #113c2d;
+    --editar-text: #34d399;
+    --remover-bg: #3d1f22;
+    --remover-text: #f87171;
+    --hora-bg: #232a4d;
 }
 
 * {
@@ -31,6 +59,7 @@ body {
     color: var(--text);
     display: flex;
     justify-content: center;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .container {
@@ -40,12 +69,40 @@ body {
     border-radius: 16px;
     padding: 28px 24px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.2s ease;
+}
+
+.cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
 h1 {
     font-size: 1.5rem;
-    margin: 0 0 20px;
+    margin: 0;
     text-align: center;
+}
+
+#botaoModoEscuro {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 1.1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+#botaoModoEscuro:hover {
+    border-color: var(--primary);
 }
 
 
@@ -66,7 +123,9 @@ input[type="text"] {
     border-radius: 8px;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.15s ease;
+    background: var(--input-bg);
+    color: var(--text);
+    transition: border-color 0.15s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 input[type="text"]:focus {
@@ -79,12 +138,28 @@ input[type="text"]:focus {
     border-radius: 8px;
     font-size: 1rem;
     outline: none;
+    background: var(--input-bg);
     color: var(--text);
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
 #entradaHora:focus {
     border-color: var(--primary);
+}
+
+#entradaHora.campo-invalido {
+    border-color: var(--danger);
+}
+
+.aviso-erro {
+    display: none;
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin: -12px 0 16px;
+}
+
+.aviso-erro.mostrar {
+    display: block;
 }
 
 #botaoAdicionarTarefa {
@@ -116,8 +191,8 @@ button:active {
 }
 
 .botao-editar {
-    background: #e6f9f0;
-    color: #059669;
+    background: var(--editar-bg);
+    color: var(--editar-text);
     margin-right: 8px;
     flex-shrink: 0;
 }
@@ -128,8 +203,8 @@ button:active {
 }
 
 .botao-remover {
-    background: #fde8e8;
-    color: var(--danger);
+    background: var(--remover-bg);
+    color: var(--remover-text);
     flex-shrink: 0;
 }
 
@@ -147,6 +222,7 @@ ul {
     list-style: none;
     padding: 0;
     margin: 0;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -161,8 +237,9 @@ li {
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 10px 12px;
+    padding: 10px 14px;
     animation: entrada 0.15s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 li span {
@@ -175,7 +252,7 @@ li span {
     font-size: 0.85rem;
     color: var(--primary);
     font-weight: 600;
-    background: #eef1ff;
+    background: var(--hora-bg);
     padding: 4px 8px;
     border-radius: 6px;
     margin-right: 10px;
@@ -202,6 +279,8 @@ li span {
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.95rem;
+    background: var(--input-bg);
+    color: var(--text);
 }
 
 .input-edicao {
@@ -211,6 +290,18 @@ li span {
     border: 1px solid var(--border);
     border-radius: 6px;
     font-size: 0.95rem;
+    background: var(--input-bg);
+    color: var(--text);
+}
+
+.input-edicao-hora.campo-invalido {
+    border-color: var(--danger);
+}
+
+.aviso-erro-edicao {
+    flex: 1 1 100%;
+    color: var(--danger);
+    font-size: 0.8rem;
 }
 
 
