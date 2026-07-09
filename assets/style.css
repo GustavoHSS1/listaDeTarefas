@@ -154,8 +154,10 @@ ul {
 
 li {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -223,15 +225,49 @@ li span {
 
 
 /* ==========================================================================
-   8. RESPONSIVIDADE
+   8. RESPONSIVIDADE (telas de celular / tablets pequenos)
    ========================================================================== */
 
-@media (max-width: 400px) {
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+    }
+
+    .container {
+        padding: 20px 16px;
+        border-radius: 12px;
+    }
+
+    h1 {
+        font-size: 1.25rem;
+    }
+
+    /* campo de adicionar empilhado, cada item ocupando a largura toda */
     .campo-adicionar {
         flex-direction: column;
     }
 
-    #entradaHora {
+    #entradaHora,
+    #botaoAdicionarTarefa {
         width: 100%;
+    }
+
+    /* botões Editar/Remover quebram para uma segunda linha,
+       ocupando metade da largura cada um, lado a lado */
+    .botao-editar,
+    .botao-remover {
+        flex: 1 1 calc(50% - 4px);
+        text-align: center;
+    }
+
+    .botao-editar {
+        margin-right: 0;
+    }
+
+    /* inputs de edição ocupam a linha toda em telas pequenas,
+       em vez de ficarem espremidos ao lado um do outro */
+    .input-edicao-hora,
+    .input-edicao {
+        flex: 1 1 100%;
     }
 }
