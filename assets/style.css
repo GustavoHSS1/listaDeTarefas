@@ -1,158 +1,237 @@
+/* ==========================================================================
+   1. VARIÁVEIS E RESET
+   ========================================================================== */
+
 :root {
-            --bg: #f4f6f8;
-            --card: #ffffff;
-            --primary: #4361ee;
-            --primary-dark: #3247b3;
-            --text: #1f2937;
-            --muted: #6b7280;
-            --danger: #ef4444;
-            --danger-dark: #d63c3c;
-            --border: #e5e7eb;
-        }
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --primary: #4361ee;
+    --primary-dark: #3247b3;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --danger: #ef4444;
+    --danger-dark: #d63c3c;
+    --border: #e5e7eb;
+}
 
-        * {
-            box-sizing: border-box;
-        }
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            padding: 24px;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-        }
 
-        .container {
-            width: 100%;
-            max-width: 480px;
-            background: var(--card);
-            border-radius: 16px;
-            padding: 28px 24px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-        }
+/* ==========================================================================
+   2. ESTRUTURA BASE (body, container, título)
+   ========================================================================== */
 
-        h1 {
-            font-size: 1.5rem;
-            margin: 0 0 20px;
-            text-align: center;
-        }
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 24px;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+}
 
-        .campo-adicionar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
+.container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 28px 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
 
-        input[type="text"] {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.15s ease;
-        }
+h1 {
+    font-size: 1.5rem;
+    margin: 0 0 20px;
+    text-align: center;
+}
 
-        input[type="text"]:focus {
-            border-color: var(--primary);
-        }
 
-        button {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background-color 0.15s ease, transform 0.05s ease;
-        }
+/* ==========================================================================
+   3. CAMPO DE ADICIONAR TAREFA (texto + hora + botão adicionar)
+   ========================================================================== */
 
-        button:active {
-            transform: scale(0.97);
-        }
+.campo-adicionar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
 
-        #botaoAdicionarTarefa {
-            background: var(--primary);
-            color: #fff;
-            white-space: nowrap;
-        }
+input[type="text"] {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
 
-        #botaoAdicionarTarefa:hover {
-            background: var(--primary-dark);
-        }
+input[type="text"]:focus {
+    border-color: var(--primary);
+}
 
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+#entradaHora {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    color: var(--text);
+    transition: border-color 0.15s ease;
+}
 
-        li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 10px 12px;
-            animation: entrada 0.15s ease;
-        }
+#entradaHora:focus {
+    border-color: var(--primary);
+}
 
-        li span {
-            flex: 1;
-            word-break: break-word;
-            padding-right: 8px;
-        }
+#botaoAdicionarTarefa {
+    background: var(--primary);
+    color: #fff;
+    white-space: nowrap;
+}
 
-        .botao-remover {
-            background: #fde8e8;
-            color: var(--danger);
-            flex-shrink: 0;
-        }
+#botaoAdicionarTarefa:hover {
+    background: var(--primary-dark);
+}
 
-        .botao-remover:hover {
-            background: var(--danger);
-            color: #fff;
-        }
 
-        .botao-editar {
-            background: #e6f9f0;
-            color: #059669;
-            margin-right: 8px;
-            flex-shrink: 0;
-        }
+/* ==========================================================================
+   4. BOTÕES GERAIS (estilo base compartilhado)
+   ========================================================================== */
 
-        .botao-editar:hover {
-            background: #059669;
-            color: #fff;
-        }
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+}
 
-        .input-edicao {
-            flex: 1;
-            padding: 8px 10px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 0.95rem;
-        }
+button:active {
+    transform: scale(0.97);
+}
 
-        .vazio {
-            text-align: center;
-            color: var(--muted);
-            padding: 16px 0;
-            font-size: 0.9rem;
-        }
+.botao-editar {
+    background: #e6f9f0;
+    color: #059669;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
 
-        @keyframes entrada {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+.botao-editar:hover {
+    background: #059669;
+    color: #fff;
+}
 
-        @media (max-width: 400px) {
-            .campo-adicionar {
-                flex-direction: column;
-            }
-        }
+.botao-remover {
+    background: #fde8e8;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+.botao-remover:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+
+/* ==========================================================================
+   5. LISTA DE TAREFAS (itens no modo normal, exibição)
+   ========================================================================== */
+
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    animation: entrada 0.15s ease;
+}
+
+li span {
+    flex: 1;
+    word-break: break-word;
+    padding-right: 8px;
+}
+
+.hora-tarefa {
+    font-size: 0.85rem;
+    color: var(--primary);
+    font-weight: 600;
+    background: #eef1ff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-right: 10px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.vazio {
+    text-align: center;
+    color: var(--muted);
+    padding: 16px 0;
+    font-size: 0.9rem;
+}
+
+
+/* ==========================================================================
+   6. MODO DE EDIÇÃO (inputs que substituem o texto/hora ao clicar em Editar)
+   ========================================================================== */
+
+.input-edicao-hora {
+    width: 110px;
+    flex-shrink: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.input-edicao {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+
+/* ==========================================================================
+   7. ANIMAÇÕES
+   ========================================================================== */
+
+@keyframes entrada {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ==========================================================================
+   8. RESPONSIVIDADE
+   ========================================================================== */
+
+@media (max-width: 400px) {
+    .campo-adicionar {
+        flex-direction: column;
+    }
+
+    #entradaHora {
+        width: 100%;
+    }
+}

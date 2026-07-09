@@ -8,7 +8,7 @@ Uma interface leve para adicionar e remover tarefas do dia a dia. As tarefas fic
 
 ## ⚔️ Melhorias
 
-Ainda irei adicionar botão de editar e estou pensando em adicionar para colocar horário
+Coloquei o botão de editar e o horário. Estou pensando em fazer algumas novidades para celular, dark mode e outras opções.
 
 ## ✨ Funcionalidades
 
