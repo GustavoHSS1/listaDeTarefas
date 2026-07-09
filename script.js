@@ -46,12 +46,54 @@ function renderizarTarefas() {
         const textoTarefa = document.createElement('span');
         textoTarefa.textContent = tarefa;
 
+        const botaoEditar = document.createElement('button');
+        botaoEditar.textContent = 'Editar';
+        botaoEditar.className = 'botao-editar';
+
         const botaoRemover = document.createElement('button');
         botaoRemover.textContent = 'Remover';
         botaoRemover.className = 'botao-remover';
         botaoRemover.onclick = () => removerTarefa(indice);
 
+        botaoEditar.onclick = () => {
+            // se já está em modo de edição, salva
+            if (botaoEditar.dataset.editing === 'true') return;
+
+            const inputEdicao = document.createElement('input');
+            inputEdicao.type = 'text';
+            inputEdicao.value = tarefa;
+            inputEdicao.className = 'input-edicao';
+
+            // troca o span pelo input
+            itemLista.replaceChild(inputEdicao, textoTarefa);
+            botaoEditar.textContent = 'Salvar';
+            botaoEditar.dataset.editing = 'true';
+
+            inputEdicao.focus();
+
+            const salvarEdicao = () => {
+                const novoTexto = inputEdicao.value.trim();
+                if (!novoTexto) return;
+                const tarefasAtual = obterTarefas();
+                tarefasAtual[indice] = novoTexto;
+                salvarTarefas(tarefasAtual);
+                renderizarTarefas();
+            };
+
+            inputEdicao.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') salvarEdicao();
+                if (e.key === 'Escape') renderizarTarefas();
+            });
+
+            botaoEditar.onclick = () => {
+                if (botaoEditar.dataset.editing === 'true') {
+                    salvarEdicao();
+                }
+            };
+        };
+
         itemLista.appendChild(textoTarefa);
+        itemLista.appendChild(botaoEditar);
         itemLista.appendChild(botaoRemover);
         listaTarefas.appendChild(itemLista);
     });
