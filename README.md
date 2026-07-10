@@ -87,7 +87,9 @@ cd listaDeTarefas
 
 ## 📸 Preview
 
-> Adicione aqui um GIF ou uma imagem do projeto.
+> <p align="center">
+  <img src="assets/img/preview.png" alt="Preview da aplicação" width="700">
+</p>
 
 ```md
 ![Preview](assets/preview.png)
