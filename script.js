@@ -127,6 +127,7 @@ function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, text
 
     infoTarefa.replaceChild(inputEdicaoHora, horaTarefa);
     infoTarefa.replaceChild(inputEdicaoTexto, textoTarefa);
+    infoTarefa.classList.add('editando');
     botaoEditar.textContent = 'Salvar';
     botaoEditar.dataset.editing = 'true';
     botaoRemover.style.display = 'none'; // esconde o Remover durante a edição

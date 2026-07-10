@@ -346,14 +346,19 @@ li span {
         font-size: 1.25rem;
     }
 
-    /* campo de adicionar empilhado, cada item ocupando a largura toda */
+    /* campo de adicionar empilhado, cada item ocupando a largura toda,
+       exceto o horário que fica mais estreito e centralizado */
     .campo-adicionar {
         flex-direction: column;
+        align-items: center;
     }
 
-    #entradaHora,
     #botaoAdicionarTarefa {
         width: 100%;
+    }
+
+    #entradaHora {
+        width: 160px;
     }
 
     /* item da lista empilhado: 1) hora+texto, 2) Editar, 3) Remover */
@@ -373,9 +378,19 @@ li span {
         text-align: center;
     }
 
-    /* inputs de edição ocupam a linha toda em telas pequenas */
-    .input-edicao-hora,
-    .input-edicao {
-        flex: 1 1 100%;
+    /* modo de edição empilhado: mensagem em cima, hora embaixo */
+    .info-tarefa.editando {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .info-tarefa.editando .input-edicao {
+        order: -1;
+        width: 100%;
+    }
+
+    .info-tarefa.editando .input-edicao-hora {
+        width: 100%;
     }
 }
