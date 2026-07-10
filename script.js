@@ -1,6 +1,55 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import {
+    getAuth,
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    onSnapshot,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    doc
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+
 /* ==========================================================================
-   1. SELETORES (referências aos elementos do HTML)
+   1. CONFIGURAÇÃO DO FIREBASE
    ========================================================================== */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB1VuM8VTwglUL-KK_YfqQgI03IjoPAIpw",
+    authDomain: "minha-agenda-713.firebaseapp.com",
+    projectId: "minha-agenda-713",
+    storageBucket: "minha-agenda-713.firebasestorage.app",
+    messagingSenderId: "707157289905",
+    appId: "1:707157289905:web:bb1a8114c1e09f91b1ab90"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+
+/* ==========================================================================
+   2. SELETORES (referências aos elementos do HTML)
+   ========================================================================== */
+
+const telaLogin = document.getElementById('telaLogin');
+const telaApp = document.getElementById('telaApp');
+const loginEmail = document.getElementById('loginEmail');
+const loginSenha = document.getElementById('loginSenha');
+const botaoEntrar = document.getElementById('botaoEntrar');
+const botaoCriarConta = document.getElementById('botaoCriarConta');
+const avisoLogin = document.getElementById('avisoLogin');
+const emailUsuario = document.getElementById('emailUsuario');
+const botaoSair = document.getElementById('botaoSair');
 
 const entradaTarefa = document.getElementById('entradaTarefa');
 const entradaHora = document.getElementById('entradaHora');
@@ -9,9 +58,12 @@ const listaTarefas = document.getElementById('listaTarefas');
 const botaoModoEscuro = document.getElementById('botaoModoEscuro');
 const avisoHora = document.getElementById('avisoHora');
 
+let tarefasAtuais = [];
+let pararDeOuvirTarefas = null; // cancela o listener do Firestore ao sair da conta
+
 
 /* ==========================================================================
-   2. MODO ESCURO (aplicar preferência salva e alternar ao clicar)
+   3. MODO ESCURO (aplicar preferência salva e alternar ao clicar)
    ========================================================================== */
 
 function aplicarModoEscuro(ativo) {
@@ -25,28 +77,80 @@ function alternarModoEscuro() {
     localStorage.setItem('modoEscuro', ativo ? 'true' : 'false');
 }
 
-// aplica a preferência salva assim que a página carrega
+// preferência de tema continua no localStorage: é do dispositivo, não do usuário
 aplicarModoEscuro(localStorage.getItem('modoEscuro') === 'true');
-
 botaoModoEscuro.addEventListener('click', alternarModoEscuro);
 
 
 /* ==========================================================================
-   3. ARMAZENAMENTO (ler e salvar no localStorage)
+   4. AUTENTICAÇÃO (login, cadastro, logout)
    ========================================================================== */
 
-function obterTarefas() {
-    const tarefas = localStorage.getItem('tarefas');
-    return tarefas ? JSON.parse(tarefas) : [];
+function mostrarErroLogin(mensagem) {
+    avisoLogin.textContent = mensagem;
+    avisoLogin.classList.add('mostrar');
 }
 
-function salvarTarefas(tarefas) {
-    localStorage.setItem('tarefas', JSON.stringify(tarefas));
+function esconderErroLogin() {
+    avisoLogin.classList.remove('mostrar');
 }
+
+function traduzirErroFirebase(codigo) {
+    const mensagens = {
+        'auth/invalid-email': 'E-mail inválido.',
+        'auth/missing-password': 'Digite uma senha.',
+        'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+        'auth/email-already-in-use': 'Esse e-mail já tem uma conta. Tente entrar.',
+        'auth/invalid-credential': 'E-mail ou senha incorretos.',
+        'auth/user-not-found': 'E-mail ou senha incorretos.',
+        'auth/wrong-password': 'E-mail ou senha incorretos.',
+        'auth/too-many-requests': 'Muitas tentativas. Espere um pouco e tente de novo.'
+    };
+    return mensagens[codigo] || 'Não foi possível completar a ação. Tente novamente.';
+}
+
+botaoEntrar.addEventListener('click', () => {
+    esconderErroLogin();
+    signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginSenha.value)
+        .catch((erro) => mostrarErroLogin(traduzirErroFirebase(erro.code)));
+});
+
+botaoCriarConta.addEventListener('click', () => {
+    esconderErroLogin();
+    createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginSenha.value)
+        .catch((erro) => mostrarErroLogin(traduzirErroFirebase(erro.code)));
+});
+
+botaoSair.addEventListener('click', () => {
+    signOut(auth);
+});
+
+// dispara sempre que o estado de login muda (entrou, saiu, abriu a página já logado)
+onAuthStateChanged(auth, (usuario) => {
+    if (usuario) {
+        telaLogin.classList.add('escondido');
+        telaApp.classList.remove('escondido');
+        emailUsuario.textContent = usuario.email;
+        loginEmail.value = '';
+        loginSenha.value = '';
+        ouvirTarefas(usuario.uid);
+    } else {
+        telaApp.classList.add('escondido');
+        telaLogin.classList.remove('escondido');
+
+        if (pararDeOuvirTarefas) {
+            pararDeOuvirTarefas();
+            pararDeOuvirTarefas = null;
+        }
+
+        tarefasAtuais = [];
+        listaTarefas.innerHTML = '';
+    }
+});
 
 
 /* ==========================================================================
-   4. VALIDAÇÃO DE HORÁRIO
+   5. VALIDAÇÃO DE HORÁRIO
    ========================================================================== */
 
 function horaValida(hora) {
@@ -63,12 +167,11 @@ function esconderErroHora() {
     avisoHora.classList.remove('mostrar');
 }
 
-// assim que o usuário mexe no campo de novo, o aviso some
 entradaHora.addEventListener('input', esconderErroHora);
 
 
 /* ==========================================================================
-   5. ORDENAÇÃO (tarefas com hora aparecem antes, em ordem crescente)
+   6. ORDENAÇÃO (tarefas com hora aparecem antes, em ordem crescente)
    ========================================================================== */
 
 function ordenarPorHora(tarefas) {
@@ -81,8 +184,23 @@ function ordenarPorHora(tarefas) {
 
 
 /* ==========================================================================
-   6. AÇÕES SOBRE TAREFAS (adicionar / remover)
+   7. FIRESTORE (ouvir, adicionar, editar e remover tarefas do usuário logado)
    ========================================================================== */
+
+function ouvirTarefas(uid) {
+    const consulta = query(collection(db, 'tarefas'), where('uid', '==', uid));
+
+    // onSnapshot fica "ouvindo" o banco: qualquer mudança (deste dispositivo
+    // ou de outro) atualiza a tela na hora, sem precisar recarregar a página
+    pararDeOuvirTarefas = onSnapshot(consulta, (snapshot) => {
+        tarefasAtuais = snapshot.docs.map((documento) => ({
+            id: documento.id,
+            texto: documento.data().texto,
+            hora: documento.data().hora
+        }));
+        renderizarTarefas();
+    });
+}
 
 function adicionarTarefa(texto, hora) {
     if (!texto.trim()) return;
@@ -93,28 +211,35 @@ function adicionarTarefa(texto, hora) {
     }
 
     esconderErroHora();
-    const tarefas = obterTarefas();
-    tarefas.push({ texto: texto.trim(), hora });
-    salvarTarefas(tarefas);
-    renderizarTarefas();
+
+    addDoc(collection(db, 'tarefas'), {
+        uid: auth.currentUser.uid,
+        texto: texto.trim(),
+        hora
+    });
+
     entradaTarefa.value = '';
     entradaHora.value = '';
     entradaTarefa.focus();
 }
 
-function removerTarefa(indiceOriginal) {
-    const tarefas = obterTarefas();
-    tarefas.splice(indiceOriginal, 1);
-    salvarTarefas(tarefas);
-    renderizarTarefas();
+function removerTarefa(id) {
+    deleteDoc(doc(db, 'tarefas', id));
+}
+
+function editarTarefa(id, novoTexto, novaHora) {
+    updateDoc(doc(db, 'tarefas', id), {
+        texto: novoTexto,
+        hora: novaHora
+    });
 }
 
 
 /* ==========================================================================
-   7. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
+   8. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
    ========================================================================== */
 
-function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice }) {
+function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa }) {
     const inputEdicaoHora = document.createElement('input');
     inputEdicaoHora.type = 'time';
     inputEdicaoHora.value = tarefa.hora || '';
@@ -130,7 +255,7 @@ function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, text
     infoTarefa.classList.add('editando');
     botaoEditar.textContent = 'Salvar';
     botaoEditar.dataset.editing = 'true';
-    botaoRemover.style.display = 'none'; // esconde o Remover durante a edição
+    botaoRemover.style.display = 'none';
 
     const avisoEdicao = document.createElement('span');
     avisoEdicao.className = 'aviso-erro-edicao';
@@ -159,10 +284,7 @@ function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, text
             return;
         }
 
-        const tarefasAtual = obterTarefas();
-        tarefasAtual[indice] = { texto: novoTexto, hora: inputEdicaoHora.value };
-        salvarTarefas(tarefasAtual);
-        renderizarTarefas();
+        editarTarefa(tarefa.id, novoTexto, inputEdicaoHora.value);
     };
 
     inputEdicaoTexto.addEventListener('keydown', (e) => {
@@ -179,10 +301,10 @@ function ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, text
 
 
 /* ==========================================================================
-   8. CRIAÇÃO DE CADA ITEM DA LISTA (elementos HTML de uma tarefa)
+   9. CRIAÇÃO DE CADA ITEM DA LISTA (elementos HTML de uma tarefa)
    ========================================================================== */
 
-function criarItemTarefa(tarefa, indice) {
+function criarItemTarefa(tarefa) {
     const itemLista = document.createElement('li');
 
     const infoTarefa = document.createElement('div');
@@ -208,14 +330,14 @@ function criarItemTarefa(tarefa, indice) {
     const botaoRemover = document.createElement('button');
     botaoRemover.textContent = 'Remover';
     botaoRemover.className = 'botao-remover';
-    botaoRemover.onclick = () => removerTarefa(indice);
+    botaoRemover.onclick = () => removerTarefa(tarefa.id);
 
     acoesTarefa.appendChild(botaoEditar);
     acoesTarefa.appendChild(botaoRemover);
 
     botaoEditar.onclick = () => {
         if (botaoEditar.dataset.editing === 'true') return;
-        ativarModoEdicao({ itemLista, infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa, indice });
+        ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa });
     };
 
     itemLista.appendChild(infoTarefa);
@@ -226,14 +348,13 @@ function criarItemTarefa(tarefa, indice) {
 
 
 /* ==========================================================================
-   9. RENDERIZAÇÃO (desenha a lista inteira na tela)
+   10. RENDERIZAÇÃO (desenha a lista inteira na tela)
    ========================================================================== */
 
 function renderizarTarefas() {
     listaTarefas.innerHTML = '';
-    const tarefas = obterTarefas();
 
-    if (tarefas.length === 0) {
+    if (tarefasAtuais.length === 0) {
         const vazio = document.createElement('li');
         vazio.className = 'vazio';
         vazio.textContent = 'Nenhuma tarefa por aqui ainda.';
@@ -241,18 +362,14 @@ function renderizarTarefas() {
         return;
     }
 
-    const tarefasOrdenadas = ordenarPorHora(tarefas);
-
-    tarefasOrdenadas.forEach((tarefa) => {
-        const indice = tarefas.indexOf(tarefa);
-        const itemLista = criarItemTarefa(tarefa, indice);
-        listaTarefas.appendChild(itemLista);
+    ordenarPorHora(tarefasAtuais).forEach((tarefa) => {
+        listaTarefas.appendChild(criarItemTarefa(tarefa));
     });
 }
 
 
 /* ==========================================================================
-   10. EVENTOS (clique no botão, tecla Enter no input)
+   11. EVENTOS (clique no botão, tecla Enter no input)
    ========================================================================== */
 
 botaoAdicionarTarefa.addEventListener('click', () => {
@@ -264,10 +381,3 @@ entradaTarefa.addEventListener('keydown', (evento) => {
         adicionarTarefa(entradaTarefa.value, entradaHora.value);
     }
 });
-
-
-/* ==========================================================================
-   11. INICIALIZAÇÃO
-   ========================================================================== */
-
-renderizarTarefas();

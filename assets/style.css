@@ -116,7 +116,9 @@ h1 {
     margin-bottom: 20px;
 }
 
-input[type="text"] {
+input[type="text"],
+input[type="email"],
+input[type="password"] {
     flex: 1;
     padding: 10px 14px;
     border: 1px solid var(--border);
@@ -128,7 +130,9 @@ input[type="text"] {
     transition: border-color 0.15s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
-input[type="text"]:focus {
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
     border-color: var(--primary);
 }
 
@@ -170,6 +174,69 @@ input[type="text"]:focus {
 
 #botaoAdicionarTarefa:hover {
     background: var(--primary-dark);
+}
+
+
+/* ==========================================================================
+   3.5 LOGIN / CADASTRO / USUÁRIO LOGADO
+   ========================================================================== */
+
+.escondido {
+    display: none !important;
+}
+
+#telaLogin {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.botoes-login {
+    display: flex;
+    gap: 8px;
+}
+
+.botoes-login button {
+    flex: 1;
+}
+
+#botaoCriarConta {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+#botaoCriarConta:hover {
+    border-color: var(--primary);
+}
+
+.usuario-logado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+#emailUsuario {
+    word-break: break-all;
+}
+
+#botaoSair {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#botaoSair:hover {
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 

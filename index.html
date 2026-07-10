@@ -12,14 +12,35 @@
             <h1>📝 Lista de Tarefas</h1>
             <button id="botaoModoEscuro" aria-label="Alternar modo escuro" title="Alternar modo escuro">🌙</button>
         </div>
-        <div class="campo-adicionar">
-            <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
-            <input type="time" id="entradaHora">
-            <button id="botaoAdicionarTarefa">Adicionar</button>
+
+        <!-- TELA DE LOGIN / CADASTRO (aparece quando ninguém está logado) -->
+        <div id="telaLogin">
+            <input type="email" id="loginEmail" placeholder="E-mail">
+            <input type="password" id="loginSenha" placeholder="Senha (mínimo 6 caracteres)">
+            <div class="botoes-login">
+                <button id="botaoEntrar">Entrar</button>
+                <button id="botaoCriarConta">Criar conta</button>
+            </div>
+            <span id="avisoLogin" class="aviso-erro"></span>
         </div>
-        <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
-        <ul id="listaTarefas"></ul>
+
+        <!-- APP (só aparece quando o usuário está logado) -->
+        <div id="telaApp" class="escondido">
+            <div class="usuario-logado">
+                <span id="emailUsuario"></span>
+                <button id="botaoSair">Sair</button>
+            </div>
+
+            <div class="campo-adicionar">
+                <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
+                <input type="time" id="entradaHora">
+                <button id="botaoAdicionarTarefa">Adicionar</button>
+            </div>
+            <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
+            <ul id="listaTarefas"></ul>
+        </div>
     </div>
-    <script src="script.js"></script>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
