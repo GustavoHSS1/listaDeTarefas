@@ -88,7 +88,7 @@ cd listaDeTarefas
 ## 📸 Preview
 
 > <p align="center">
-  <img src="assets/img/preview.png" alt="Preview da aplicação" width="700">
+  <img src="assets/img/image.png" alt="Preview da aplicação" width="700">
 </p>
 
 ```md
