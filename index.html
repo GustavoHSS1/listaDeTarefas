@@ -7,13 +7,27 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+
+    <!-- BOTÃO HAMBÚRGUER -->
+    <button id="botaoMenu" class="botao-menu" aria-label="Abrir menu" title="Menu">☰</button>
+
+    <!-- FUNDO ESCURO ATRÁS DO MENU LATERAL -->
+    <div id="overlayMenu" class="overlay-menu"></div>
+
+    <!-- MENU LATERAL -->
+    <nav id="menuLateral" class="menu-lateral">
+        <button class="item-menu" data-view="lembretes">🗒️ Lembretes</button>
+        <button class="item-menu" data-view="calendario">📅 Calendário</button>
+        <button class="item-menu" data-view="conta">👤 Minha conta</button>
+    </nav>
+
     <div class="container">
         <div class="cabecalho">
             <h1>📝 Lista de Tarefas</h1>
             <button id="botaoModoEscuro" aria-label="Alternar modo escuro" title="Alternar modo escuro">🌙</button>
         </div>
 
-        <!-- TELA DE LOGIN / CADASTRO (aparece quando ninguém está logado) -->
+        <!-- TELA DE LOGIN / CADASTRO -->
         <div id="telaLogin">
             <input type="email" id="loginEmail" placeholder="E-mail">
             <input type="password" id="loginSenha" placeholder="Senha (mínimo 6 caracteres)">
@@ -24,20 +38,69 @@
             <span id="avisoLogin" class="aviso-erro"></span>
         </div>
 
-        <!-- APP (só aparece quando o usuário está logado) -->
+        <!-- APP (só aparece quando logado) -->
         <div id="telaApp" class="escondido">
-            <div class="usuario-logado">
-                <span id="emailUsuario"></span>
-                <button id="botaoSair">Sair</button>
-            </div>
 
-            <div class="campo-adicionar">
-                <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
-                <input type="time" id="entradaHora">
-                <button id="botaoAdicionarTarefa">Adicionar</button>
+            <!-- VIEW: LEMBRETES -->
+            <section id="viewLembretes" class="view">
+                <div class="campo-adicionar">
+                    <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
+                    <input type="time" id="entradaHora">
+                    <button id="botaoAdicionarTarefa">Adicionar</button>
+                </div>
+                <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
+                <ul id="listaTarefas"></ul>
+            </section>
+
+            <!-- VIEW: CALENDÁRIO -->
+            <section id="viewCalendario" class="view escondido">
+                <div class="calendario-cabecalho">
+                    <button id="mesAnterior" class="botao-nav-mes" aria-label="Mês anterior">‹</button>
+                    <span id="mesAnoAtual"></span>
+                    <button id="mesProximo" class="botao-nav-mes" aria-label="Próximo mês">›</button>
+                </div>
+
+                <div class="calendario-grade" id="calendarioGrade"></div>
+
+                <div id="painelDiaSelecionado" class="painel-dia escondido">
+                    <h2 id="tituloDiaSelecionado"></h2>
+                    <div class="campo-adicionar">
+                        <input type="text" id="entradaTarefaData" placeholder="Adicione um lembrete para esse dia">
+                        <input type="time" id="entradaHoraData">
+                        <button id="botaoAdicionarTarefaData">Adicionar</button>
+                    </div>
+                    <span id="avisoData" class="aviso-erro"></span>
+                    <ul id="listaTarefasData"></ul>
+                </div>
+            </section>
+
+            <!-- VIEW: MINHA CONTA -->
+            <section id="viewConta" class="view escondido">
+                <p class="texto-conta">Logado como <strong id="emailUsuario"></strong></p>
+
+                <div class="trocar-senha">
+                    <h2>Trocar senha</h2>
+                    <input type="password" id="senhaAtual" placeholder="Senha atual">
+                    <input type="password" id="novaSenha" placeholder="Nova senha (mínimo 6 caracteres)">
+                    <button id="botaoTrocarSenha" class="botao-editar">Trocar senha</button>
+                    <span id="avisoSenha" class="aviso-erro"></span>
+                    <span id="sucessoSenha" class="aviso-sucesso"></span>
+                </div>
+
+                <button id="botaoSair">Sair da conta</button>
+            </section>
+        </div>
+    </div>
+
+    <!-- MODAL DE OBSERVAÇÃO / NOTA -->
+    <div id="modalNota" class="modal-overlay escondido">
+        <div class="modal-caixa">
+            <h2>Observação</h2>
+            <textarea id="textoNota" rows="4" placeholder="Escreva uma observação para essa tarefa..."></textarea>
+            <div class="modal-botoes">
+                <button id="botaoSalvarNota" class="botao-editar">Salvar</button>
+                <button id="botaoFecharNota" class="botao-remover">Fechar</button>
             </div>
-            <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
-            <ul id="listaTarefas"></ul>
         </div>
     </div>
 

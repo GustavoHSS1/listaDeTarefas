@@ -210,33 +210,294 @@ input[type="password"]:focus {
     border-color: var(--primary);
 }
 
-.usuario-logado {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 18px;
-    font-size: 0.85rem;
+.texto-conta {
+    font-size: 0.9rem;
     color: var(--muted);
+    word-break: break-all;
 }
 
-#emailUsuario {
-    word-break: break-all;
+.trocar-senha {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.trocar-senha h2 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+.aviso-sucesso {
+    display: none;
+    color: var(--editar-text);
+    font-size: 0.85rem;
+}
+
+.aviso-sucesso.mostrar {
+    display: block;
+}
+
+#viewConta {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 #botaoSair {
     background: var(--bg);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    white-space: nowrap;
-    flex-shrink: 0;
+    padding: 10px 16px;
+    width: 100%;
 }
 
 #botaoSair:hover {
     border-color: var(--danger);
     color: var(--danger);
+}
+
+
+/* ==========================================================================
+   3.6 MENU LATERAL (hambúrguer + drawer com Lembretes/Calendário/Conta)
+   ========================================================================== */
+
+.botao-menu {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 1.2rem;
+    z-index: 60;
+}
+
+.overlay-menu {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 40;
+}
+
+.menu-lateral {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 240px;
+    max-width: 80vw;
+    background: var(--card);
+    border-right: 1px solid var(--border);
+    padding: 76px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+}
+
+.item-menu {
+    text-align: left;
+    background: transparent;
+    color: var(--text);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.item-menu:hover {
+    background: var(--bg);
+}
+
+.item-menu.ativo {
+    background: var(--hora-bg);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+body.menu-aberto .menu-lateral {
+    transform: translateX(0);
+}
+
+body.menu-aberto .overlay-menu {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+/* ==========================================================================
+   3.7 CALENDÁRIO
+   ========================================================================== */
+
+.calendario-cabecalho {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+#mesAnoAtual {
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.botao-nav-mes {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.botao-nav-mes:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.calendario-grade {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.dia-semana {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    padding-bottom: 4px;
+}
+
+.dia-celula {
+    position: relative;
+    aspect-ratio: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.9rem;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dia-celula:hover {
+    border-color: var(--primary);
+}
+
+.dia-celula.vazio {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+}
+
+.dia-celula.hoje {
+    border-color: var(--primary);
+    font-weight: 600;
+}
+
+.dia-celula.selecionado {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.dia-celula.tem-tarefa::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.dia-celula.selecionado.tem-tarefa::after {
+    background: #fff;
+}
+
+.painel-dia {
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.painel-dia h2 {
+    font-size: 1rem;
+    margin: 0 0 12px;
+    text-transform: capitalize;
+}
+
+
+/* ==========================================================================
+   3.8 MODAL DE OBSERVAÇÃO / NOTA
+   ========================================================================== */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 70;
+}
+
+.modal-caixa {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.modal-caixa h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+}
+
+#textoNota {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--input-bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 90px;
+}
+
+#textoNota:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.modal-botoes {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.modal-botoes button {
+    flex: 1;
 }
 
 
@@ -296,15 +557,23 @@ ul {
 
 li {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 14px;
     animation: entrada 0.15s ease;
     transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.linha-tarefa {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
 }
 
 .info-tarefa {
@@ -322,7 +591,7 @@ li {
     flex-shrink: 0;
 }
 
-li span {
+.linha-tarefa span {
     flex: 1;
     word-break: break-word;
     padding-right: 8px;
@@ -345,6 +614,46 @@ li span {
     color: var(--muted);
     padding: 16px 0;
     font-size: 0.9rem;
+}
+
+/* observação: sempre visível quando existe, sem precisar clicar em nada */
+.bloco-nota {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--hora-bg);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.texto-nota {
+    flex: 1;
+    color: var(--text);
+    font-style: italic;
+    word-break: break-word;
+}
+
+.botao-editar-nota {
+    background: transparent;
+    padding: 2px 6px;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.botao-adicionar-nota {
+    background: transparent;
+    color: var(--muted);
+    padding: 4px 0;
+    font-size: 0.8rem;
+    text-decoration: underline;
+    align-self: flex-start;
+}
+
+.botao-editar-nota:hover,
+.botao-adicionar-nota:hover {
+    color: var(--primary);
 }
 
 
@@ -429,7 +738,7 @@ li span {
     }
 
     /* item da lista empilhado: 1) hora+texto, 2) Editar, 3) Remover */
-    li {
+    .linha-tarefa {
         flex-direction: column;
         align-items: stretch;
     }
@@ -459,5 +768,35 @@ li span {
 
     .info-tarefa.editando .input-edicao-hora {
         width: 100%;
+    }
+
+    /* menu lateral ocupa mais largura relativa em telas pequenas */
+    .menu-lateral {
+        width: 220px;
+        max-width: 78vw;
+    }
+
+    .botao-menu {
+        top: 12px;
+        left: 12px;
+    }
+
+    /* modal de nota com respiro lateral menor */
+    .modal-caixa {
+        padding: 16px;
+    }
+
+    /* calendário com células e fontes um pouco menores */
+    .calendario-grade {
+        gap: 3px;
+    }
+
+    .dia-celula {
+        font-size: 0.8rem;
+        border-radius: 6px;
+    }
+
+    .dia-semana {
+        font-size: 0.65rem;
     }
 }
