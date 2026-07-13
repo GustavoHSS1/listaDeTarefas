@@ -3,29 +3,33 @@
    ========================================================================== */
 
 :root {
-    --bg: #f4f6f8;
-    --card: #ffffff;
+    color-scheme: light;
+
+    --bg: #eceff3;
+    --card: #fbfbfe;
     --primary: #4361ee;
     --primary-dark: #3247b3;
     --text: #1f2937;
     --muted: #6b7280;
     --danger: #ef4444;
     --danger-dark: #d63c3c;
-    --border: #e5e7eb;
+    --border: #dde1e6;
 
     /* cores que antes estavam "fixas" nas regras, agora viram variáveis
        para que o modo escuro consiga sobrescrevê-las facilmente */
-    --input-bg: #ffffff;
-    --editar-bg: #e6f9f0;
+    --input-bg: #f4f5f7;
+    --editar-bg: #def4e8;
     --editar-text: #059669;
-    --remover-bg: #fde8e8;
+    --remover-bg: #fbe4e4;
     --remover-text: var(--danger);
-    --hora-bg: #eef1ff;
+    --hora-bg: #e7ebfc;
 }
 
 /* tema escuro: mesma lista de variáveis, valores diferentes.
    Como são custom properties, tudo que já usa var(--xxx) se adapta sozinho. */
 body.modo-escuro {
+    color-scheme: dark;
+
     --bg: #14161c;
     --card: #1f232b;
     --text: #e6e8eb;
@@ -107,13 +111,19 @@ h1 {
 
 
 /* ==========================================================================
-   3. CAMPO DE ADICIONAR TAREFA (texto + hora + botão adicionar)
+   3. FORMULÁRIO DE ADICIONAR TAREFA (texto, hora, data, cor, botão)
    ========================================================================== */
 
-.campo-adicionar {
+.form-adicionar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.linha-detalhes {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
 }
 
 input[type="text"],
@@ -136,7 +146,9 @@ input[type="password"]:focus {
     border-color: var(--primary);
 }
 
-#entradaHora {
+input[type="time"],
+input[type="date"] {
+    flex: 1;
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -147,11 +159,13 @@ input[type="password"]:focus {
     transition: border-color 0.15s ease, background-color 0.2s ease, color 0.2s ease;
 }
 
-#entradaHora:focus {
+input[type="time"]:focus,
+input[type="date"]:focus {
     border-color: var(--primary);
 }
 
-#entradaHora.campo-invalido {
+#entradaHora.campo-invalido,
+#entradaHoraData.campo-invalido {
     border-color: var(--danger);
 }
 
@@ -159,21 +173,115 @@ input[type="password"]:focus {
     display: none;
     color: var(--danger);
     font-size: 0.85rem;
-    margin: -12px 0 16px;
+    margin-top: -4px;
 }
 
 .aviso-erro.mostrar {
     display: block;
 }
 
-#botaoAdicionarTarefa {
+/* seletor de cor compacto: um círculo que abre um popover com as opções */
+.seletor-cor-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.botao-cor-trigger {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid var(--border);
+    background: var(--card);
+}
+
+.botao-cor-trigger:hover {
+    border-color: var(--primary);
+}
+
+.popover-cor {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    z-index: 55;
+}
+
+.swatch-cor {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    padding: 0;
+    border: 2px solid transparent;
+}
+
+.swatch-sem-cor {
+    background: var(--card);
+    border: 2px dashed var(--border);
+}
+
+.swatch-cor.selecionado::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.8rem;
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+}
+
+.swatch-sem-cor.selecionado::after {
+    color: var(--text);
+    text-shadow: none;
+}
+
+#botaoAdicionarTarefa,
+#botaoAdicionarTarefaData {
     background: var(--primary);
     color: #fff;
     white-space: nowrap;
 }
 
-#botaoAdicionarTarefa:hover {
+#botaoAdicionarTarefa:hover,
+#botaoAdicionarTarefaData:hover {
     background: var(--primary-dark);
+}
+
+/* botões de texto (não confundir com os ícones quadrados da lista) */
+.botao-texto-verde {
+    background: var(--editar-bg);
+    color: var(--editar-text);
+    width: 100%;
+    padding: 10px 16px;
+}
+
+.botao-texto-verde:hover {
+    background: #059669;
+    color: #fff;
+}
+
+.botao-texto-vermelho {
+    background: var(--remover-bg);
+    color: var(--remover-text);
+    width: 100%;
+    padding: 10px 16px;
+}
+
+.botao-texto-vermelho:hover {
+    background: var(--danger);
+    color: #fff;
 }
 
 
@@ -522,6 +630,13 @@ button:active {
     background: var(--editar-bg);
     color: var(--editar-text);
     flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .botao-editar:hover {
@@ -533,6 +648,13 @@ button:active {
     background: var(--remover-bg);
     color: var(--remover-text);
     flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .botao-remover:hover {
@@ -722,36 +844,14 @@ li {
         font-size: 1.25rem;
     }
 
-    /* campo de adicionar empilhado, cada item ocupando a largura toda,
-       exceto o horário que fica mais estreito e centralizado */
-    .campo-adicionar {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    #botaoAdicionarTarefa {
-        width: 100%;
-    }
-
-    #entradaHora {
-        width: 160px;
-    }
-
-    /* item da lista empilhado: 1) hora+texto, 2) Editar, 3) Remover */
+    /* item da lista empilhado: 1) hora+texto, 2) ícones de ação */
     .linha-tarefa {
         flex-direction: column;
         align-items: stretch;
     }
 
     .acoes-tarefa {
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .botao-editar,
-    .botao-remover {
-        width: 100%;
-        text-align: center;
+        align-self: flex-end;
     }
 
     /* modo de edição empilhado: mensagem em cima, hora embaixo */

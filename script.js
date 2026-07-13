@@ -1,47 +1,12 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    updatePassword
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    onSnapshot,
-    addDoc,
-    updateDoc,
-    deleteDoc,
-    doc
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { entrar, criarConta, sair, trocarSenha, traduzirErroFirebase, observarUsuario } from './auth.js';
+import { ouvirTarefasDoUsuario, criarTarefa, editarTarefa, atualizarNotaTarefa, removerTarefa } from './tarefas.js';
+import { nomesMeses, diasDaSemana, paraISO, formatarDataExtenso, obterInfoDoMes } from './calendario-utils.js';
+import { iniciarTema } from './tema.js';
+import { iniciarMenu, mostrarView, fecharMenu } from './menu.js';
 
 
 /* ==========================================================================
-   1. CONFIGURAÇÃO DO FIREBASE
-   ========================================================================== */
-
-const firebaseConfig = {
-    apiKey: "AIzaSyB1VuM8VTwglUL-KK_YfqQgI03IjoPAIpw",
-    authDomain: "minha-agenda-713.firebaseapp.com",
-    projectId: "minha-agenda-713",
-    storageBucket: "minha-agenda-713.firebasestorage.app",
-    messagingSenderId: "707157289905",
-    appId: "1:707157289905:web:bb1a8114c1e09f91b1ab90"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-
-/* ==========================================================================
-   2. SELETORES (referências aos elementos do HTML)
+   1. SELETORES (referências aos elementos do HTML)
    ========================================================================== */
 
 const telaLogin = document.getElementById('telaLogin');
@@ -51,20 +16,12 @@ const loginSenha = document.getElementById('loginSenha');
 const botaoEntrar = document.getElementById('botaoEntrar');
 const botaoCriarConta = document.getElementById('botaoCriarConta');
 const avisoLogin = document.getElementById('avisoLogin');
-const botaoModoEscuro = document.getElementById('botaoModoEscuro');
-
-// menu lateral
-const botaoMenu = document.getElementById('botaoMenu');
-const overlayMenu = document.getElementById('overlayMenu');
-const itensMenu = document.querySelectorAll('.item-menu');
-const viewLembretes = document.getElementById('viewLembretes');
-const viewCalendario = document.getElementById('viewCalendario');
-const viewConta = document.getElementById('viewConta');
-const views = { lembretes: viewLembretes, calendario: viewCalendario, conta: viewConta };
 
 // lembretes
 const entradaTarefa = document.getElementById('entradaTarefa');
 const entradaHora = document.getElementById('entradaHora');
+const entradaDataLembrete = document.getElementById('entradaDataLembrete');
+const seletorCorLembrete = document.getElementById('seletorCorLembrete');
 const botaoAdicionarTarefa = document.getElementById('botaoAdicionarTarefa');
 const listaTarefas = document.getElementById('listaTarefas');
 const avisoHora = document.getElementById('avisoHora');
@@ -78,6 +35,7 @@ const painelDiaSelecionado = document.getElementById('painelDiaSelecionado');
 const tituloDiaSelecionado = document.getElementById('tituloDiaSelecionado');
 const entradaTarefaData = document.getElementById('entradaTarefaData');
 const entradaHoraData = document.getElementById('entradaHoraData');
+const seletorCorCalendario = document.getElementById('seletorCorCalendario');
 const botaoAdicionarTarefaData = document.getElementById('botaoAdicionarTarefaData');
 const listaTarefasData = document.getElementById('listaTarefasData');
 const avisoData = document.getElementById('avisoData');
@@ -97,116 +55,144 @@ const textoNota = document.getElementById('textoNota');
 const botaoSalvarNota = document.getElementById('botaoSalvarNota');
 const botaoFecharNota = document.getElementById('botaoFecharNota');
 
-const nomesMeses = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-];
-const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
 let tarefasAtuais = [];
-let pararDeOuvirTarefas = null; // cancela o listener do Firestore ao sair da conta
-let tarefaAtualNota = null; // qual tarefa está aberta no modal de observação
-let mesExibido = new Date(); // mês/ano que a grade do calendário está mostrando
-let dataSelecionadaValor = ''; // dia clicado na grade, formato 'AAAA-MM-DD'
+let pararDeOuvirTarefas = null;
+let tarefaAtualNota = null;
+let mesExibido = new Date();
+let dataSelecionadaValor = '';
+let corSelecionadaLembrete = '';
+let corSelecionadaCalendario = '';
+let hojeConhecido = paraISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+const paletaCores = {
+    vermelho: '#ef4444',
+    azul: '#3b82f6',
+    amarelo: '#f5b400',
+    verde: '#22c55e',
+    roxo: '#a855f7'
+};
 
 
 /* ==========================================================================
-   3. MODO ESCURO (aplicar preferência salva e alternar ao clicar)
+   2. INICIALIZAÇÃO DOS MÓDULOS DE TEMA E MENU
    ========================================================================== */
 
-function aplicarModoEscuro(ativo) {
-    document.body.classList.toggle('modo-escuro', ativo);
-    botaoModoEscuro.textContent = ativo ? '☀️' : '🌙';
-}
+iniciarTema();
 
-function alternarModoEscuro() {
-    const ativo = !document.body.classList.contains('modo-escuro');
-    aplicarModoEscuro(ativo);
-    localStorage.setItem('modoEscuro', ativo ? 'true' : 'false');
-}
-
-aplicarModoEscuro(localStorage.getItem('modoEscuro') === 'true');
-botaoModoEscuro.addEventListener('click', alternarModoEscuro);
-
-
-/* ==========================================================================
-   4. MENU LATERAL (abrir/fechar e trocar de tela)
-   ========================================================================== */
-
-function abrirMenu() {
-    document.body.classList.add('menu-aberto');
-}
-
-function fecharMenu() {
-    document.body.classList.remove('menu-aberto');
-}
-
-function mostrarView(nome) {
-    Object.entries(views).forEach(([chave, elemento]) => {
-        elemento.classList.toggle('escondido', chave !== nome);
-    });
-
-    itensMenu.forEach((botao) => {
-        botao.classList.toggle('ativo', botao.dataset.view === nome);
-    });
-
-    fecharMenu();
-
+iniciarMenu((nome) => {
     if (nome === 'calendario') renderizarGradeCalendario();
-}
-
-botaoMenu.addEventListener('click', abrirMenu);
-overlayMenu.addEventListener('click', fecharMenu);
-
-itensMenu.forEach((botao) => {
-    botao.addEventListener('click', () => mostrarView(botao.dataset.view));
 });
 
 
 /* ==========================================================================
-   5. AUTENTICAÇÃO (login, cadastro, logout)
+   2.5 SELETOR DE COR (botão compacto + popover, usado nos 2 formulários e na edição)
    ========================================================================== */
 
-function mostrarErroLogin(mensagem) {
-    avisoLogin.textContent = mensagem;
-    avisoLogin.classList.add('mostrar');
-}
+const opcoesDeCor = [
+    { cor: '', classe: 'swatch-sem-cor', titulo: 'Sem cor' },
+    { cor: 'vermelho', hex: '#ef4444', titulo: 'Vermelho' },
+    { cor: 'azul', hex: '#3b82f6', titulo: 'Azul' },
+    { cor: 'amarelo', hex: '#f5b400', titulo: 'Amarelo' },
+    { cor: 'verde', hex: '#22c55e', titulo: 'Verde' },
+    { cor: 'roxo', hex: '#a855f7', titulo: 'Roxo' }
+];
 
-function esconderErroLogin() {
-    avisoLogin.classList.remove('mostrar');
-}
+// Monta um botão circular (mostra a cor atual) que abre um popover com as
+// opções ao clicar. Retorna um objeto com "resetar()" pra voltar a "sem cor".
+function construirSeletorCor(container, corInicial, aoSelecionar) {
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'botao-cor-trigger';
+    trigger.title = 'Escolher cor';
 
-function traduzirErroFirebase(codigo) {
-    const mensagens = {
-        'auth/invalid-email': 'E-mail inválido.',
-        'auth/missing-password': 'Digite uma senha.',
-        'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
-        'auth/email-already-in-use': 'Esse e-mail já tem uma conta. Tente entrar.',
-        'auth/invalid-credential': 'E-mail ou senha incorretos.',
-        'auth/user-not-found': 'E-mail ou senha incorretos.',
-        'auth/wrong-password': 'Senha atual incorreta.',
-        'auth/too-many-requests': 'Muitas tentativas. Espere um pouco e tente de novo.'
+    const popover = document.createElement('div');
+    popover.className = 'popover-cor escondido';
+
+    function atualizarTrigger(cor) {
+        const opcao = opcoesDeCor.find((o) => o.cor === cor);
+        if (opcao && opcao.hex) {
+            trigger.style.background = opcao.hex;
+        } else {
+            trigger.style.background = '';
+        }
+    }
+
+    opcoesDeCor.forEach((opcao) => {
+        const swatch = document.createElement('button');
+        swatch.type = 'button';
+        swatch.className = 'swatch-cor' + (opcao.classe ? ' ' + opcao.classe : '');
+        if (opcao.hex) swatch.style.background = opcao.hex;
+        swatch.title = opcao.titulo;
+        if (opcao.cor === corInicial) swatch.classList.add('selecionado');
+
+        swatch.addEventListener('click', (evento) => {
+            evento.stopPropagation();
+            popover.querySelectorAll('.swatch-cor').forEach((s) => s.classList.remove('selecionado'));
+            swatch.classList.add('selecionado');
+            atualizarTrigger(opcao.cor);
+            aoSelecionar(opcao.cor);
+            popover.classList.add('escondido');
+        });
+
+        popover.appendChild(swatch);
+    });
+
+    trigger.addEventListener('click', (evento) => {
+        evento.stopPropagation();
+        document.querySelectorAll('.popover-cor').forEach((p) => {
+            if (p !== popover) p.classList.add('escondido');
+        });
+        popover.classList.toggle('escondido');
+    });
+
+    atualizarTrigger(corInicial);
+    container.appendChild(trigger);
+    container.appendChild(popover);
+
+    return {
+        resetar() {
+            popover.querySelectorAll('.swatch-cor').forEach((s, indice) => s.classList.toggle('selecionado', indice === 0));
+            atualizarTrigger('');
+        }
     };
-    return mensagens[codigo] || 'Não foi possível completar a ação. Tente novamente.';
 }
+
+// fecha qualquer popover de cor aberto ao clicar fora dele
+document.addEventListener('click', () => {
+    document.querySelectorAll('.popover-cor').forEach((p) => p.classList.add('escondido'));
+});
+
+const controleCorLembrete = construirSeletorCor(seletorCorLembrete, '', (cor) => { corSelecionadaLembrete = cor; });
+const controleCorCalendario = construirSeletorCor(seletorCorCalendario, '', (cor) => { corSelecionadaCalendario = cor; });
+
+
+/* ==========================================================================
+   3. AUTENTICAÇÃO (login, cadastro, logout)
+   ========================================================================== */
 
 botaoEntrar.addEventListener('click', () => {
-    esconderErroLogin();
-    signInWithEmailAndPassword(auth, loginEmail.value.trim(), loginSenha.value)
-        .catch((erro) => mostrarErroLogin(traduzirErroFirebase(erro.code)));
+    avisoLogin.classList.remove('mostrar');
+    entrar(loginEmail.value.trim(), loginSenha.value)
+        .catch((erro) => {
+            avisoLogin.textContent = traduzirErroFirebase(erro.code);
+            avisoLogin.classList.add('mostrar');
+        });
 });
 
 botaoCriarConta.addEventListener('click', () => {
-    esconderErroLogin();
-    createUserWithEmailAndPassword(auth, loginEmail.value.trim(), loginSenha.value)
-        .catch((erro) => mostrarErroLogin(traduzirErroFirebase(erro.code)));
+    avisoLogin.classList.remove('mostrar');
+    criarConta(loginEmail.value.trim(), loginSenha.value)
+        .catch((erro) => {
+            avisoLogin.textContent = traduzirErroFirebase(erro.code);
+            avisoLogin.classList.add('mostrar');
+        });
 });
 
 botaoSair.addEventListener('click', () => {
-    signOut(auth);
+    sair();
 });
 
-onAuthStateChanged(auth, (usuario) => {
+observarUsuario((usuario) => {
     if (usuario) {
         telaLogin.classList.add('escondido');
         telaApp.classList.remove('escondido');
@@ -214,7 +200,12 @@ onAuthStateChanged(auth, (usuario) => {
         loginEmail.value = '';
         loginSenha.value = '';
         mostrarView('lembretes');
-        ouvirTarefas(usuario.uid);
+        pararDeOuvirTarefas = ouvirTarefasDoUsuario(usuario.uid, (tarefas) => {
+            tarefasAtuais = tarefas;
+            renderizarTarefas();
+            renderizarGradeCalendario();
+            renderizarListaDoDia();
+        });
     } else {
         telaApp.classList.add('escondido');
         telaLogin.classList.remove('escondido');
@@ -235,66 +226,49 @@ onAuthStateChanged(auth, (usuario) => {
 
 
 /* ==========================================================================
-   6. TROCAR SENHA (Minha conta)
+   4. TROCAR SENHA (Minha conta)
    ========================================================================== */
-
-function mostrarErroSenha(mensagem) {
-    sucessoSenha.classList.remove('mostrar');
-    avisoSenha.textContent = mensagem;
-    avisoSenha.classList.add('mostrar');
-}
-
-function mostrarSucessoSenha(mensagem) {
-    avisoSenha.classList.remove('mostrar');
-    sucessoSenha.textContent = mensagem;
-    sucessoSenha.classList.add('mostrar');
-}
 
 botaoTrocarSenha.addEventListener('click', () => {
     avisoSenha.classList.remove('mostrar');
     sucessoSenha.classList.remove('mostrar');
 
     if (novaSenha.value.length < 6) {
-        mostrarErroSenha('A nova senha precisa ter pelo menos 6 caracteres.');
+        avisoSenha.textContent = 'A nova senha precisa ter pelo menos 6 caracteres.';
+        avisoSenha.classList.add('mostrar');
         return;
     }
 
-    const credencial = EmailAuthProvider.credential(auth.currentUser.email, senhaAtual.value);
-
-    reauthenticateWithCredential(auth.currentUser, credencial)
-        .then(() => updatePassword(auth.currentUser, novaSenha.value))
+    trocarSenha(senhaAtual.value, novaSenha.value)
         .then(() => {
-            mostrarSucessoSenha('Senha alterada com sucesso!');
+            sucessoSenha.textContent = 'Senha alterada com sucesso!';
+            sucessoSenha.classList.add('mostrar');
             senhaAtual.value = '';
             novaSenha.value = '';
         })
-        .catch((erro) => mostrarErroSenha(traduzirErroFirebase(erro.code)));
+        .catch((erro) => {
+            avisoSenha.textContent = traduzirErroFirebase(erro.code);
+            avisoSenha.classList.add('mostrar');
+        });
 });
 
 
 /* ==========================================================================
-   7. VALIDAÇÃO DE HORÁRIO
+   5. VALIDAÇÃO DE HORÁRIO
    ========================================================================== */
 
 function horaValida(hora) {
     return typeof hora === 'string' && /^([01]\d|2[0-3]):([0-5]\d)$/.test(hora);
 }
 
-function mostrarErroHora() {
-    entradaHora.classList.add('campo-invalido');
-    avisoHora.classList.add('mostrar');
-}
-
-function esconderErroHora() {
+entradaHora.addEventListener('input', () => {
     entradaHora.classList.remove('campo-invalido');
     avisoHora.classList.remove('mostrar');
-}
-
-entradaHora.addEventListener('input', esconderErroHora);
+});
 
 
 /* ==========================================================================
-   8. ORDENAÇÃO (tarefas com hora aparecem antes, em ordem crescente)
+   6. ORDENAÇÃO
    ========================================================================== */
 
 function ordenarPorHora(tarefas) {
@@ -307,100 +281,70 @@ function ordenarPorHora(tarefas) {
 
 
 /* ==========================================================================
-   9. FIRESTORE (ouvir, adicionar, editar e remover tarefas do usuário logado)
+   7. AÇÕES SOBRE TAREFAS (adicionar em Lembretes e no Calendário)
    ========================================================================== */
 
-function ouvirTarefas(uid) {
-    const consulta = query(collection(db, 'tarefas'), where('uid', '==', uid));
-
-    pararDeOuvirTarefas = onSnapshot(consulta, (snapshot) => {
-        tarefasAtuais = snapshot.docs.map((documento) => ({
-            id: documento.id,
-            texto: documento.data().texto,
-            hora: documento.data().hora,
-            data: documento.data().data || '',
-            nota: documento.data().nota || ''
-        }));
-        renderizarTarefas();
-        renderizarGradeCalendario();
-        renderizarListaDoDia();
-    });
-}
-
-function adicionarTarefa(texto, hora) {
+function adicionarTarefaLembrete(texto, hora) {
     if (!texto.trim()) return;
 
     if (!horaValida(hora)) {
-        mostrarErroHora();
+        entradaHora.classList.add('campo-invalido');
+        avisoHora.classList.add('mostrar');
         return;
     }
 
-    esconderErroHora();
+    entradaHora.classList.remove('campo-invalido');
+    avisoHora.classList.remove('mostrar');
 
-    addDoc(collection(db, 'tarefas'), {
-        uid: auth.currentUser.uid,
+    criarTarefa({
         texto: texto.trim(),
         hora,
-        data: '',
-        nota: ''
+        data: entradaDataLembrete.value || '',
+        cor: corSelecionadaLembrete
     });
 
     entradaTarefa.value = '';
     entradaHora.value = '';
+    entradaDataLembrete.value = '';
+    corSelecionadaLembrete = '';
+    controleCorLembrete.resetar();
     entradaTarefa.focus();
 }
 
-function mostrarErroData(mensagem) {
-    avisoData.textContent = mensagem;
-    avisoData.classList.add('mostrar');
-}
-
-function esconderErroData() {
-    avisoData.classList.remove('mostrar');
-}
-
-function adicionarTarefaData(texto, hora) {
+function adicionarTarefaCalendario(texto, hora) {
     if (!texto.trim()) return;
 
     if (!dataSelecionadaValor) {
-        mostrarErroData('Selecione uma data antes de adicionar.');
+        avisoData.textContent = 'Selecione uma data antes de adicionar.';
+        avisoData.classList.add('mostrar');
         return;
     }
 
     if (!horaValida(hora)) {
-        mostrarErroData('Selecione um horário válido para adicionar a tarefa.');
+        avisoData.textContent = 'Selecione um horário válido para adicionar a tarefa.';
+        avisoData.classList.add('mostrar');
         return;
     }
 
-    esconderErroData();
+    avisoData.classList.remove('mostrar');
 
-    addDoc(collection(db, 'tarefas'), {
-        uid: auth.currentUser.uid,
+    criarTarefa({
         texto: texto.trim(),
         hora,
         data: dataSelecionadaValor,
-        nota: ''
+        cor: corSelecionadaCalendario
     });
 
     entradaTarefaData.value = '';
     entradaHoraData.value = '';
+    corSelecionadaCalendario = '';
+    controleCorCalendario.resetar();
     entradaTarefaData.focus();
-}
-
-function removerTarefa(id) {
-    deleteDoc(doc(db, 'tarefas', id));
-}
-
-function editarTarefa(id, novoTexto, novaHora) {
-    updateDoc(doc(db, 'tarefas', id), {
-        texto: novoTexto,
-        hora: novaHora
-    });
 }
 
 
 /* ==========================================================================
-   10. MODAL DE OBSERVAÇÃO / NOTA
+   8. MODAL DE OBSERVAÇÃO / NOTA
    ========================================================================== */
 
 function abrirNota(tarefa) {
@@ -419,7 +363,7 @@ botaoFecharNota.addEventListener('click', fecharNota);
 
 botaoSalvarNota.addEventListener('click', () => {
     if (!tarefaAtualNota) return;
-    updateDoc(doc(db, 'tarefas', tarefaAtualNota.id), { nota: textoNota.value.trim() });
+    atualizarNotaTarefa(tarefaAtualNota.id, textoNota.value.trim());
     fecharNota();
 });
 
@@ -429,7 +373,7 @@ modalNota.addEventListener('click', (evento) => {
 
 
 /* ==========================================================================
-   11. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
+   9. MODO DE EDIÇÃO (troca texto/hora por inputs editáveis)
    ========================================================================== */
 
 function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, botaoEditar, botaoRemover, tarefa }) {
@@ -446,9 +390,16 @@ function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, bo
     infoTarefa.replaceChild(inputEdicaoHora, horaTarefa);
     infoTarefa.replaceChild(inputEdicaoTexto, textoTarefa);
     infoTarefa.classList.add('editando');
-    botaoEditar.textContent = 'Salvar';
+    botaoEditar.textContent = '✔️';
+    botaoEditar.title = 'Salvar';
     botaoEditar.dataset.editing = 'true';
     botaoRemover.style.display = 'none';
+
+    let corEdicaoSelecionada = tarefa.cor || '';
+    const seletorEdicaoCor = document.createElement('div');
+    seletorEdicaoCor.className = 'seletor-cor-wrapper';
+    construirSeletorCor(seletorEdicaoCor, corEdicaoSelecionada, (cor) => { corEdicaoSelecionada = cor; });
+    acoesTarefa.appendChild(seletorEdicaoCor);
 
     const avisoEdicao = document.createElement('span');
     avisoEdicao.className = 'aviso-erro-edicao';
@@ -477,7 +428,11 @@ function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, bo
             return;
         }
 
-        editarTarefa(tarefa.id, novoTexto, inputEdicaoHora.value);
+        editarTarefa(tarefa.id, {
+            texto: novoTexto,
+            hora: inputEdicaoHora.value,
+            cor: corEdicaoSelecionada
+        });
     };
 
     inputEdicaoTexto.addEventListener('keydown', (e) => {
@@ -497,11 +452,16 @@ function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, bo
 
 
 /* ==========================================================================
-   12. CRIAÇÃO DE CADA ITEM DA LISTA (elementos HTML de uma tarefa)
+   10. CRIAÇÃO DE CADA ITEM DA LISTA
    ========================================================================== */
 
 function criarItemTarefa(tarefa) {
     const itemLista = document.createElement('li');
+
+    if (tarefa.cor && paletaCores[tarefa.cor]) {
+        itemLista.style.borderLeftWidth = '4px';
+        itemLista.style.borderLeftColor = paletaCores[tarefa.cor];
+    }
 
     const linhaTarefa = document.createElement('div');
     linhaTarefa.className = 'linha-tarefa';
@@ -523,11 +483,13 @@ function criarItemTarefa(tarefa) {
     acoesTarefa.className = 'acoes-tarefa';
 
     const botaoEditar = document.createElement('button');
-    botaoEditar.textContent = 'Editar';
+    botaoEditar.textContent = '✏️';
+    botaoEditar.title = 'Editar';
     botaoEditar.className = 'botao-editar';
 
     const botaoRemover = document.createElement('button');
-    botaoRemover.textContent = 'Remover';
+    botaoRemover.textContent = '🗑️';
+    botaoRemover.title = 'Remover';
     botaoRemover.className = 'botao-remover';
     botaoRemover.onclick = () => removerTarefa(tarefa.id);
 
@@ -543,7 +505,6 @@ function criarItemTarefa(tarefa) {
     linhaTarefa.appendChild(acoesTarefa);
     itemLista.appendChild(linhaTarefa);
 
-    // observação: aparece direto na tela quando existe, sem precisar clicar
     const blocoNota = document.createElement('div');
     blocoNota.className = 'bloco-nota';
 
@@ -553,7 +514,7 @@ function criarItemTarefa(tarefa) {
         textoNotaEl.textContent = `📌 ${tarefa.nota}`;
 
         const botaoEditarNota = document.createElement('button');
-        botaoEditarNota.textContent = '✏️';
+        botaoEditarNota.textContent = '🖊️';
         botaoEditarNota.className = 'botao-editar-nota';
         botaoEditarNota.title = 'Editar observação';
         botaoEditarNota.onclick = () => abrirNota(tarefa);
@@ -583,25 +544,24 @@ function criarListaVazia(mensagem) {
 
 
 /* ==========================================================================
-   13. RENDERIZAÇÃO DAS LISTAS
+   11. RENDERIZAÇÃO DAS LISTAS
    ========================================================================== */
 
-// Lembretes: tarefas sem data específica (a lista original, sem filtro)
 function renderizarTarefas() {
     listaTarefas.innerHTML = '';
-    const tarefasSemData = tarefasAtuais.filter((tarefa) => !tarefa.data);
+    const hojeISO = paraISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    const tarefasVisiveisHoje = tarefasAtuais.filter((tarefa) => !tarefa.data || tarefa.data === hojeISO);
 
-    if (tarefasSemData.length === 0) {
+    if (tarefasVisiveisHoje.length === 0) {
         listaTarefas.appendChild(criarListaVazia('Nenhuma tarefa por aqui ainda.'));
         return;
     }
 
-    ordenarPorHora(tarefasSemData).forEach((tarefa) => {
+    ordenarPorHora(tarefasVisiveisHoje).forEach((tarefa) => {
         listaTarefas.appendChild(criarItemTarefa(tarefa));
     });
 }
 
-// Calendário: lista de tarefas do dia selecionado na grade
 function renderizarListaDoDia() {
     listaTarefasData.innerHTML = '';
 
@@ -621,19 +581,8 @@ function renderizarListaDoDia() {
 
 
 /* ==========================================================================
-   14. CALENDÁRIO (grade do mês, navegação e seleção de dia)
+   12. CALENDÁRIO (grade do mês, navegação e seleção de dia)
    ========================================================================== */
-
-function paraISO(ano, mesIndex, dia) {
-    const mm = String(mesIndex + 1).padStart(2, '0');
-    const dd = String(dia).padStart(2, '0');
-    return `${ano}-${mm}-${dd}`;
-}
-
-function formatarDataExtenso(iso) {
-    const [ano, mes, dia] = iso.split('-').map(Number);
-    return `${dia} de ${nomesMeses[mes - 1]} de ${ano}`;
-}
 
 function renderizarGradeCalendario() {
     const ano = mesExibido.getFullYear();
@@ -649,8 +598,7 @@ function renderizarGradeCalendario() {
         calendarioGrade.appendChild(celulaLabel);
     });
 
-    const primeiroDiaSemana = new Date(ano, mesIndex, 1).getDay();
-    const diasNoMes = new Date(ano, mesIndex + 1, 0).getDate();
+    const { primeiroDiaSemana, diasNoMes } = obterInfoDoMes(ano, mesIndex);
     const hoje = new Date();
     const hojeISO = paraISO(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
 
@@ -680,7 +628,7 @@ function selecionarData(iso) {
     renderizarGradeCalendario();
     painelDiaSelecionado.classList.remove('escondido');
     tituloDiaSelecionado.textContent = formatarDataExtenso(iso);
-    esconderErroData();
+    avisoData.classList.remove('mostrar');
     renderizarListaDoDia();
 }
 
@@ -696,25 +644,39 @@ mesProximo.addEventListener('click', () => {
 
 
 /* ==========================================================================
-   15. EVENTOS (clique nos botões, tecla Enter)
+   13. EVENTOS DE FORMULÁRIO (clique nos botões, tecla Enter)
    ========================================================================== */
 
 botaoAdicionarTarefa.addEventListener('click', () => {
-    adicionarTarefa(entradaTarefa.value, entradaHora.value);
+    adicionarTarefaLembrete(entradaTarefa.value, entradaHora.value);
 });
 
 entradaTarefa.addEventListener('keydown', (evento) => {
     if (evento.key === 'Enter') {
-        adicionarTarefa(entradaTarefa.value, entradaHora.value);
+        adicionarTarefaLembrete(entradaTarefa.value, entradaHora.value);
     }
 });
 
 botaoAdicionarTarefaData.addEventListener('click', () => {
-    adicionarTarefaData(entradaTarefaData.value, entradaHoraData.value);
+    adicionarTarefaCalendario(entradaTarefaData.value, entradaHoraData.value);
 });
 
 entradaTarefaData.addEventListener('keydown', (evento) => {
     if (evento.key === 'Enter') {
-        adicionarTarefaData(entradaTarefaData.value, entradaHoraData.value);
+        adicionarTarefaCalendario(entradaTarefaData.value, entradaHoraData.value);
     }
 });
+
+
+/* ==========================================================================
+   14. VIRADA DE DIA (recalcula "hoje" sem precisar recarregar a página)
+   ========================================================================== */
+
+setInterval(() => {
+    const hojeAgora = paraISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    if (hojeAgora !== hojeConhecido) {
+        hojeConhecido = hojeAgora;
+        renderizarTarefas();
+        renderizarGradeCalendario();
+    }
+}, 60000);

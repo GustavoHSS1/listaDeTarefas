@@ -43,9 +43,15 @@
 
             <!-- VIEW: LEMBRETES -->
             <section id="viewLembretes" class="view">
-                <div class="campo-adicionar">
+                <div class="form-adicionar">
                     <input type="text" id="entradaTarefa" placeholder="Adicione uma nova tarefa">
-                    <input type="time" id="entradaHora">
+
+                    <div class="linha-detalhes">
+                        <input type="time" id="entradaHora">
+                        <input type="date" id="entradaDataLembrete">
+                        <div class="seletor-cor-wrapper" id="seletorCorLembrete"></div>
+                    </div>
+
                     <button id="botaoAdicionarTarefa">Adicionar</button>
                 </div>
                 <span id="avisoHora" class="aviso-erro">Selecione um horário válido para adicionar a tarefa.</span>
@@ -64,9 +70,14 @@
 
                 <div id="painelDiaSelecionado" class="painel-dia escondido">
                     <h2 id="tituloDiaSelecionado"></h2>
-                    <div class="campo-adicionar">
+                    <div class="form-adicionar">
                         <input type="text" id="entradaTarefaData" placeholder="Adicione um lembrete para esse dia">
-                        <input type="time" id="entradaHoraData">
+
+                        <div class="linha-detalhes">
+                            <input type="time" id="entradaHoraData">
+                            <div class="seletor-cor-wrapper" id="seletorCorCalendario"></div>
+                        </div>
+
                         <button id="botaoAdicionarTarefaData">Adicionar</button>
                     </div>
                     <span id="avisoData" class="aviso-erro"></span>
@@ -82,7 +93,7 @@
                     <h2>Trocar senha</h2>
                     <input type="password" id="senhaAtual" placeholder="Senha atual">
                     <input type="password" id="novaSenha" placeholder="Nova senha (mínimo 6 caracteres)">
-                    <button id="botaoTrocarSenha" class="botao-editar">Trocar senha</button>
+                    <button id="botaoTrocarSenha" class="botao-texto-verde">Trocar senha</button>
                     <span id="avisoSenha" class="aviso-erro"></span>
                     <span id="sucessoSenha" class="aviso-sucesso"></span>
                 </div>
@@ -98,8 +109,8 @@
             <h2>Observação</h2>
             <textarea id="textoNota" rows="4" placeholder="Escreva uma observação para essa tarefa..."></textarea>
             <div class="modal-botoes">
-                <button id="botaoSalvarNota" class="botao-editar">Salvar</button>
-                <button id="botaoFecharNota" class="botao-remover">Fechar</button>
+                <button id="botaoSalvarNota" class="botao-texto-verde">Salvar</button>
+                <button id="botaoFecharNota" class="botao-texto-vermelho">Fechar</button>
             </div>
         </div>
     </div>
