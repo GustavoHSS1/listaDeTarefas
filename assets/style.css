@@ -942,3 +942,17 @@ input[type="date"] {
     min-width: 0;
     max-width: 100%;
 }
+
+.checkbox-tarefa {
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+    accent-color: var(--primary);
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.texto-tarefa.concluida-texto {
+    text-decoration: line-through;
+    color: var(--muted);
+}

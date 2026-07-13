@@ -1,5 +1,5 @@
 import { entrar, criarConta, sair, trocarSenha, traduzirErroFirebase, observarUsuario } from './auth.js';
-import { ouvirTarefasDoUsuario, criarTarefa, editarTarefa, atualizarNotaTarefa, removerTarefa } from './tarefas.js';
+import { ouvirTarefasDoUsuario, criarTarefa, editarTarefa, atualizarNotaTarefa, alternarConclusaoTarefa, removerTarefa } from './tarefas.js';
 import { nomesMeses, diasDaSemana, paraISO, formatarDataExtenso, obterInfoDoMes } from './calendario-utils.js';
 import { iniciarTema } from './tema.js';
 import { iniciarMenu, mostrarView, fecharMenu } from './menu.js';
@@ -34,6 +34,7 @@ const calendarioGrade = document.getElementById('calendarioGrade');
 const painelDiaSelecionado = document.getElementById('painelDiaSelecionado');
 const tituloDiaSelecionado = document.getElementById('tituloDiaSelecionado');
 const listaTarefasData = document.getElementById('listaTarefasData');
+const listaConcluidas = document.getElementById('listaConcluidas');
 
 // minha conta
 const emailUsuario = document.getElementById('emailUsuario');
@@ -75,6 +76,7 @@ iniciarTema();
 
 iniciarMenu((nome) => {
     if (nome === 'calendario') renderizarGradeCalendario();
+    if (nome === 'concluidas') renderizarConcluidas();
 });
 
 
@@ -195,11 +197,12 @@ observarUsuario((usuario) => {
         mostrarView('lembretes');
         definirValoresPadraoFormularioLembrete();
         pararDeOuvirTarefas = ouvirTarefasDoUsuario(usuario.uid, (tarefas) => {
-            tarefasAtuais = tarefas;
-            renderizarTarefas();
-            renderizarGradeCalendario();
-            renderizarListaDoDia();
-        });
+        tarefasAtuais = tarefas;
+        renderizarTarefas();
+        renderizarGradeCalendario();
+        renderizarListaDoDia();
+        renderizarConcluidas();
+    });
     } else {
         telaApp.classList.add('escondido');
         telaLogin.classList.remove('escondido');
@@ -459,13 +462,29 @@ function criarItemTarefa(tarefa) {
 
     const textoTarefa = document.createElement('span');
     textoTarefa.className = 'texto-tarefa';
+    if (tarefa.concluida) textoTarefa.classList.add('concluida-texto');
     textoTarefa.textContent = tarefa.texto;
 
     infoTarefa.appendChild(horaTarefa);
     infoTarefa.appendChild(textoTarefa);
 
+    const checkboxConcluida = document.createElement('input');
+    checkboxConcluida.type = 'checkbox';
+    checkboxConcluida.className = 'checkbox-tarefa';
+    checkboxConcluida.checked = !!tarefa.concluida;
+    checkboxConcluida.title = tarefa.concluida ? 'Marcar como pendente' : 'Marcar como concluída';
+    checkboxConcluida.addEventListener('change', () => {
+        alternarConclusaoTarefa(tarefa.id, checkboxConcluida.checked);
+        tarefa.concluida = checkboxConcluida.checked;
+        renderizarTarefas();
+        renderizarGradeCalendario();
+        renderizarListaDoDia();
+        renderizarConcluidas();
+    });
+
     const acoesTarefa = document.createElement('div');
     acoesTarefa.className = 'acoes-tarefa';
+    acoesTarefa.appendChild(checkboxConcluida);
 
     const botaoEditar = document.createElement('button');
     botaoEditar.textContent = '✏️';
@@ -535,7 +554,7 @@ function criarListaVazia(mensagem) {
 function renderizarTarefas() {
     listaTarefas.innerHTML = '';
     const hojeISO = paraISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-    const tarefasVisiveisHoje = tarefasAtuais.filter((tarefa) => !tarefa.data || tarefa.data === hojeISO);
+    const tarefasVisiveisHoje = tarefasAtuais.filter((tarefa) => !tarefa.concluida && (!tarefa.data || tarefa.data === hojeISO));
 
     if (tarefasVisiveisHoje.length === 0) {
         listaTarefas.appendChild(criarListaVazia('Nenhuma tarefa por aqui ainda.'));
@@ -564,6 +583,19 @@ function renderizarListaDoDia() {
     });
 }
 
+function renderizarConcluidas() {
+    listaConcluidas.innerHTML = '';
+    const tarefasConcluidas = tarefasAtuais.filter((tarefa) => tarefa.concluida);
+
+    if (tarefasConcluidas.length === 0) {
+        listaConcluidas.appendChild(criarListaVazia('Nenhuma tarefa concluída ainda.'));
+        return;
+    }
+
+    ordenarPorHora(tarefasConcluidas).forEach((tarefa) => {
+        listaConcluidas.appendChild(criarItemTarefa(tarefa));
+    });
+}
 
 /* ==========================================================================
    12. CALENDÁRIO (grade do mês, navegação e seleção de dia)

@@ -10,8 +10,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { db, auth } from './firebase-config.js';
 
-// fica "ouvindo" o banco: qualquer mudança atualiza a tela na hora.
-// Retorna a função de cancelamento (unsubscribe) do listener.
 export function ouvirTarefasDoUsuario(uid, aoAtualizar) {
     const consulta = query(collection(db, 'tarefas'), where('uid', '==', uid));
 
@@ -22,7 +20,8 @@ export function ouvirTarefasDoUsuario(uid, aoAtualizar) {
             hora: documento.data().hora,
             data: documento.data().data || '',
             nota: documento.data().nota || '',
-            cor: documento.data().cor || ''
+            cor: documento.data().cor || '',
+            concluida: documento.data().concluida || false
         }));
         aoAtualizar(tarefas);
     });
@@ -35,7 +34,8 @@ export function criarTarefa({ texto, hora, data = '', nota = '', cor = '' }) {
         hora,
         data,
         nota,
-        cor
+        cor,
+        concluida: false
     });
 }
 
@@ -45,6 +45,10 @@ export function editarTarefa(id, dadosAtualizados) {
 
 export function atualizarNotaTarefa(id, nota) {
     return updateDoc(doc(db, 'tarefas', id), { nota });
+}
+
+export function alternarConclusaoTarefa(id, concluida) {
+    return updateDoc(doc(db, 'tarefas', id), { concluida });
 }
 
 export function removerTarefa(id) {

@@ -5,6 +5,7 @@ const itensMenu = document.querySelectorAll('.item-menu');
 const views = {
     lembretes: document.getElementById('viewLembretes'),
     calendario: document.getElementById('viewCalendario'),
+    concluidas: document.getElementById('viewConcluidas'),
     conta: document.getElementById('viewConta')
 };
 
@@ -16,8 +17,6 @@ export function fecharMenu() {
     document.body.classList.remove('menu-aberto');
 }
 
-// aoTrocarView(nome) é chamada toda vez que o usuário troca de tela,
-// útil pra re-renderizar algo específico daquela tela (ex: o calendário)
 export function mostrarView(nome, aoTrocarView) {
     Object.entries(views).forEach(([chave, elemento]) => {
         elemento.classList.toggle('escondido', chave !== nome);
