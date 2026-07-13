@@ -193,6 +193,7 @@ observarUsuario((usuario) => {
         loginEmail.value = '';
         loginSenha.value = '';
         mostrarView('lembretes');
+        definirValoresPadraoFormularioLembrete();
         pararDeOuvirTarefas = ouvirTarefasDoUsuario(usuario.uid, (tarefas) => {
             tarefasAtuais = tarefas;
             renderizarTarefas();
@@ -277,6 +278,18 @@ function ordenarPorHora(tarefas) {
    7. AÇÕES SOBRE TAREFAS (adicionar em Lembretes e no Calendário)
    ========================================================================== */
 
+// preenche hora/data do formulário com valores padrão (agora e hoje) —
+// alguns navegadores mobile não mostram bem o placeholder nativo de
+// input[type=time]/[type=date] quando o valor fica vazio, então em vez
+// de limpar deixamos um valor sugerido já selecionado
+function definirValoresPadraoFormularioLembrete() {
+    const agora = new Date();
+    const hh = String(agora.getHours()).padStart(2, '0');
+    const mm = String(agora.getMinutes()).padStart(2, '0');
+    entradaHora.value = `${hh}:${mm}`;
+    entradaDataLembrete.value = paraISO(agora.getFullYear(), agora.getMonth(), agora.getDate());
+}
+
 function adicionarTarefaLembrete(texto, hora) {
     if (!texto.trim()) return;
 
@@ -297,8 +310,7 @@ function adicionarTarefaLembrete(texto, hora) {
     });
 
     entradaTarefa.value = '';
-    entradaHora.value = '';
-    entradaDataLembrete.value = '';
+    definirValoresPadraoFormularioLembrete();
     corSelecionadaLembrete = '';
     controleCorLembrete.resetar();
     entradaTarefa.focus();

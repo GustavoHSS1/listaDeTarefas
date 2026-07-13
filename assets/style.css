@@ -412,6 +412,7 @@ input[type="date"]:focus {
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     z-index: 50;
+    overflow-y: auto;
 }
 
 .item-menu {
@@ -930,4 +931,14 @@ li {
     .dia-semana {
         font-size: 0.65rem;
     }
+}
+
+/* Reset de aparência nativa para inputs de hora/data — evita que fiquem
+   enormes ou "saindo" do cartão em navegadores mobile / webviews */
+input[type="time"],
+input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+    max-width: 100%;
 }
