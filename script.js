@@ -33,12 +33,7 @@ const mesAnoAtual = document.getElementById('mesAnoAtual');
 const calendarioGrade = document.getElementById('calendarioGrade');
 const painelDiaSelecionado = document.getElementById('painelDiaSelecionado');
 const tituloDiaSelecionado = document.getElementById('tituloDiaSelecionado');
-const entradaTarefaData = document.getElementById('entradaTarefaData');
-const entradaHoraData = document.getElementById('entradaHoraData');
-const seletorCorCalendario = document.getElementById('seletorCorCalendario');
-const botaoAdicionarTarefaData = document.getElementById('botaoAdicionarTarefaData');
 const listaTarefasData = document.getElementById('listaTarefasData');
-const avisoData = document.getElementById('avisoData');
 
 // minha conta
 const emailUsuario = document.getElementById('emailUsuario');
@@ -61,7 +56,6 @@ let tarefaAtualNota = null;
 let mesExibido = new Date();
 let dataSelecionadaValor = '';
 let corSelecionadaLembrete = '';
-let corSelecionadaCalendario = '';
 let hojeConhecido = paraISO(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
 
 const paletaCores = {
@@ -163,7 +157,6 @@ document.addEventListener('click', () => {
 });
 
 const controleCorLembrete = construirSeletorCor(seletorCorLembrete, '', (cor) => { corSelecionadaLembrete = cor; });
-const controleCorCalendario = construirSeletorCor(seletorCorCalendario, '', (cor) => { corSelecionadaCalendario = cor; });
 
 
 /* ==========================================================================
@@ -311,37 +304,6 @@ function adicionarTarefaLembrete(texto, hora) {
     entradaTarefa.focus();
 }
 
-function adicionarTarefaCalendario(texto, hora) {
-    if (!texto.trim()) return;
-
-    if (!dataSelecionadaValor) {
-        avisoData.textContent = 'Selecione uma data antes de adicionar.';
-        avisoData.classList.add('mostrar');
-        return;
-    }
-
-    if (!horaValida(hora)) {
-        avisoData.textContent = 'Selecione um horário válido para adicionar a tarefa.';
-        avisoData.classList.add('mostrar');
-        return;
-    }
-
-    avisoData.classList.remove('mostrar');
-
-    criarTarefa({
-        texto: texto.trim(),
-        hora,
-        data: dataSelecionadaValor,
-        cor: corSelecionadaCalendario
-    });
-
-    entradaTarefaData.value = '';
-    entradaHoraData.value = '';
-    corSelecionadaCalendario = '';
-    controleCorCalendario.resetar();
-    entradaTarefaData.focus();
-}
-
 
 /* ==========================================================================
    8. MODAL DE OBSERVAÇÃO / NOTA
@@ -420,20 +382,30 @@ function ativarModoEdicao({ infoTarefa, acoesTarefa, horaTarefa, textoTarefa, bo
     inputEdicaoHora.addEventListener('input', esconderErroEdicao);
 
     const salvarEdicao = () => {
-        const novoTexto = inputEdicaoTexto.value.trim();
-        if (!novoTexto) return;
+    const novoTexto = inputEdicaoTexto.value.trim();
+    if (!novoTexto) return;
 
-        if (!horaValida(inputEdicaoHora.value)) {
-            mostrarErroEdicao();
-            return;
-        }
+    if (!horaValida(inputEdicaoHora.value)) {
+        mostrarErroEdicao();
+        return;
+    }
 
-        editarTarefa(tarefa.id, {
-            texto: novoTexto,
-            hora: inputEdicaoHora.value,
-            cor: corEdicaoSelecionada
-        });
-    };
+    editarTarefa(tarefa.id, {
+        texto: novoTexto,
+        hora: inputEdicaoHora.value,
+        cor: corEdicaoSelecionada
+    });
+
+    // Atualiza a tarefa localmente e sai do modo de edição na hora,
+    // mesmo que nada tenha mudado (o Firestore não dispara o listener
+    // quando os dados salvos são idênticos aos que já estavam em cache).
+    tarefa.texto = novoTexto;
+    tarefa.hora = inputEdicaoHora.value;
+    tarefa.cor = corEdicaoSelecionada;
+
+    renderizarTarefas();
+    renderizarListaDoDia();
+};
 
     inputEdicaoTexto.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') salvarEdicao();
@@ -474,6 +446,7 @@ function criarItemTarefa(tarefa) {
     horaTarefa.textContent = tarefa.hora || '--:--';
 
     const textoTarefa = document.createElement('span');
+    textoTarefa.className = 'texto-tarefa';
     textoTarefa.textContent = tarefa.texto;
 
     infoTarefa.appendChild(horaTarefa);
@@ -610,13 +583,32 @@ function renderizarGradeCalendario() {
 
     for (let dia = 1; dia <= diasNoMes; dia++) {
         const iso = paraISO(ano, mesIndex, dia);
+        const tarefasDoDia = tarefasAtuais.filter((tarefa) => tarefa.data === iso);
+
         const celula = document.createElement('button');
         celula.className = 'dia-celula';
-        celula.textContent = dia;
 
         if (iso === hojeISO) celula.classList.add('hoje');
         if (iso === dataSelecionadaValor) celula.classList.add('selecionado');
-        if (tarefasAtuais.some((tarefa) => tarefa.data === iso)) celula.classList.add('tem-tarefa');
+
+        const numero = document.createElement('span');
+        numero.textContent = dia;
+        celula.appendChild(numero);
+
+        if (tarefasDoDia.length > 0) {
+            const pontos = document.createElement('div');
+            pontos.className = 'dia-pontos';
+
+            tarefasDoDia.forEach((tarefa) => {
+                const ponto = document.createElement('span');
+                if (tarefa.cor && paletaCores[tarefa.cor]) {
+                    ponto.style.background = paletaCores[tarefa.cor];
+                }
+                pontos.appendChild(ponto);
+            });
+
+            celula.appendChild(pontos);
+        }
 
         celula.onclick = () => selecionarData(iso);
         calendarioGrade.appendChild(celula);
@@ -628,7 +620,6 @@ function selecionarData(iso) {
     renderizarGradeCalendario();
     painelDiaSelecionado.classList.remove('escondido');
     tituloDiaSelecionado.textContent = formatarDataExtenso(iso);
-    avisoData.classList.remove('mostrar');
     renderizarListaDoDia();
 }
 
@@ -654,16 +645,6 @@ botaoAdicionarTarefa.addEventListener('click', () => {
 entradaTarefa.addEventListener('keydown', (evento) => {
     if (evento.key === 'Enter') {
         adicionarTarefaLembrete(entradaTarefa.value, entradaHora.value);
-    }
-});
-
-botaoAdicionarTarefaData.addEventListener('click', () => {
-    adicionarTarefaCalendario(entradaTarefaData.value, entradaHoraData.value);
-});
-
-entradaTarefaData.addEventListener('keydown', (evento) => {
-    if (evento.key === 'Enter') {
-        adicionarTarefaCalendario(entradaTarefaData.value, entradaHoraData.value);
     }
 });
 

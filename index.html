@@ -18,7 +18,7 @@
     <nav id="menuLateral" class="menu-lateral">
         <button class="item-menu" data-view="lembretes">🗒️ Lembretes</button>
         <button class="item-menu" data-view="calendario">📅 Calendário</button>
-        <button class="item-menu" data-view="conta">👤 Minha conta</button>
+        <button class="item-menu item-menu-rodape" data-view="conta">👤 Minha conta</button>
     </nav>
 
     <div class="container">
@@ -70,17 +70,6 @@
 
                 <div id="painelDiaSelecionado" class="painel-dia escondido">
                     <h2 id="tituloDiaSelecionado"></h2>
-                    <div class="form-adicionar">
-                        <input type="text" id="entradaTarefaData" placeholder="Adicione um lembrete para esse dia">
-
-                        <div class="linha-detalhes">
-                            <input type="time" id="entradaHoraData">
-                            <div class="seletor-cor-wrapper" id="seletorCorCalendario"></div>
-                        </div>
-
-                        <button id="botaoAdicionarTarefaData">Adicionar</button>
-                    </div>
-                    <span id="avisoData" class="aviso-erro"></span>
                     <ul id="listaTarefasData"></ul>
                 </div>
             </section>

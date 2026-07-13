@@ -379,11 +379,10 @@ input[type="date"]:focus {
     left: 20px;
     width: 44px;
     height: 44px;
-    border-radius: 10px;
-    background: var(--card);
-    border: 1px solid var(--border);
+    background: transparent;
+    border: none;
     color: var(--text);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     z-index: 60;
 }
 
@@ -432,6 +431,12 @@ input[type="date"]:focus {
     background: var(--hora-bg);
     color: var(--primary);
     font-weight: 600;
+}
+
+.item-menu-rodape {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
 }
 
 body.menu-aberto .menu-lateral {
@@ -499,10 +504,12 @@ body.menu-aberto .overlay-menu {
     border-radius: 8px;
     color: var(--text);
     font-size: 0.9rem;
-    padding: 0;
+    padding: 4px 2px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 3px;
 }
 
 .dia-celula:hover {
@@ -526,17 +533,24 @@ body.menu-aberto .overlay-menu {
     color: #fff;
 }
 
-.dia-celula.tem-tarefa::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
+.dia-pontos {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2px;
+    max-width: 100%;
+    min-height: 5px;
+}
+
+.dia-pontos span {
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--primary);
+    background: var(--muted);
+    flex-shrink: 0;
 }
 
-.dia-celula.selecionado.tem-tarefa::after {
+.dia-celula.selecionado .dia-pontos span {
     background: #fff;
 }
 
@@ -792,6 +806,7 @@ li {
     font-size: 0.95rem;
     background: var(--input-bg);
     color: var(--text);
+    margin-right: 10px;
 }
 
 .input-edicao {
@@ -859,6 +874,22 @@ li {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
+    }
+
+    /* modo normal (não editando): texto em cima, horário embaixo */
+    .info-tarefa:not(.editando) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .info-tarefa:not(.editando) .texto-tarefa {
+        order: 1;
+    }
+
+    .info-tarefa:not(.editando) .hora-tarefa {
+        order: 2;
+        margin-right: 0;
     }
 
     .info-tarefa.editando .input-edicao {
