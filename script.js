@@ -3,6 +3,7 @@ import { ouvirTarefasDoUsuario, criarTarefa, editarTarefa, atualizarNotaTarefa, 
 import { nomesMeses, diasDaSemana, paraISO, formatarDataExtenso, obterInfoDoMes } from './calendario-utils.js';
 import { iniciarTema } from './tema.js';
 import { iniciarMenu, mostrarView, fecharMenu } from './menu.js';
+import { configurarNotificacoesPush } from './notificacoes-push.js';
 
 
 /* ==========================================================================
@@ -53,6 +54,7 @@ const botaoFecharNota = document.getElementById('botaoFecharNota');
 
 let tarefasAtuais = [];
 let pararDeOuvirTarefas = null;
+let usuarioAtual = null;
 let tarefaAtualNota = null;
 let mesExibido = new Date();
 let dataSelecionadaValor = '';
@@ -188,6 +190,8 @@ botaoSair.addEventListener('click', () => {
 });
 
 observarUsuario((usuario) => {
+    usuarioAtual = usuario;
+
     if (usuario) {
         telaLogin.classList.add('escondido');
         telaApp.classList.remove('escondido');
@@ -197,12 +201,12 @@ observarUsuario((usuario) => {
         mostrarView('lembretes');
         definirValoresPadraoFormularioLembrete();
         pararDeOuvirTarefas = ouvirTarefasDoUsuario(usuario.uid, (tarefas) => {
-        tarefasAtuais = tarefas;
-        renderizarTarefas();
-        renderizarGradeCalendario();
-        renderizarListaDoDia();
-        renderizarConcluidas();
-    });
+            tarefasAtuais = tarefas;
+            renderizarTarefas();
+            renderizarGradeCalendario();
+            renderizarListaDoDia();
+            renderizarConcluidas();
+        });
     } else {
         telaApp.classList.add('escondido');
         telaLogin.classList.remove('escondido');
@@ -705,3 +709,18 @@ setInterval(() => {
         renderizarGradeCalendario();
     }
 }, 60000);
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+        .then((registro) => console.log('Service Worker registrado:', registro))
+        .catch((erro) => console.error('Erro ao registrar Service Worker:', erro));
+}
+
+// TEMPORÁRIO — pra testar a etapa 4
+window.testarConfigurarPush = async function () {
+    if (!usuarioAtual) {
+        console.log('Você precisa estar logado pra testar isso.');
+        return;
+    }
+    await configurarNotificacoesPush(usuarioAtual.uid);
+};
