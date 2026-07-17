@@ -3,41 +3,36 @@
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-blue?style=for-the-badge)
+![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)
+![Status](https://img.shields.io/badge/status-finalizado-brightgreen?style=for-the-badge)
 
-Uma aplicação de lista de tarefas (To-Do List) desenvolvida com **HTML, CSS e JavaScript**, permitindo organizar compromissos do dia a dia de forma simples e intuitiva. Os dados são armazenados no navegador utilizando **localStorage**, garantindo que as tarefas permaneçam salvas mesmo após fechar ou atualizar a página.
+Uma aplicação de lista de tarefas (To-Do List) desenvolvida com **HTML, CSS e JavaScript**, permitindo organizar compromissos do dia a dia de forma simples e intuitiva. Os dados ficam salvos na nuvem com **Firebase (Authentication + Firestore)**, então suas tarefas continuam disponíveis em qualquer dispositivo em que você fizer login.
 
 ---
 
 ## 📋 Sobre o projeto
 
-Este projeto foi criado para praticar manipulação do DOM, armazenamento local e organização de código em JavaScript puro.
+Este projeto foi criado para praticar manipulação do DOM, autenticação de usuários, banco de dados em tempo real e organização de código em JavaScript puro (sem frameworks).
 
-Ao longo do desenvolvimento, novas funcionalidades foram adicionadas com base em feedbacks e na evolução do projeto.
+O projeto passou por várias rodadas de melhorias ao longo do desenvolvimento — algumas ideias (como categorias, recorrência de tarefas e favoritas) chegaram a ser testadas, mas foram removidas por não se encaixarem bem no uso real do app. O que ficou é o núcleo que funciona bem no dia a dia.
+
+**Status: finalizado.** Isso não significa abandonado — atualizações pontuais podem acontecer com o tempo, mas não há mais funcionalidades grandes planejadas por enquanto.
 
 ---
 
 ## 🚀 Funcionalidades
 
-- ✅ Adicionar novas tarefas
-- ⏰ Definir horário para cada tarefa
-- 📅 Calendário integrado para organizar lembretes por dia
+- 🔐 Login e cadastro de usuário (Firebase Authentication)
+- ✅ Adicionar, editar e remover tarefas
+- ⏰ Definir horário e data para cada tarefa
+- 🎨 Marcar tarefas com uma cor de destaque
+- 📅 Calendário integrado, com visualização de tarefas por dia
 - 📝 Adicionar observações às tarefas
-- ✏️ Editar tarefas e observações
-- 🗑️ Remover tarefas individualmente
+- ☑️ Marcar tarefas como concluídas, com aba dedicada ao histórico
 - 🌙 Alternância entre modo claro e modo escuro
-- 💾 Salvamento automático utilizando `localStorage`
+- 👤 Área de conta com troca de senha
+- ☁️ Dados salvos na nuvem (Firebase Firestore), sincronizados em tempo real
 - 📱 Interface responsiva para dispositivos móveis
-
----
-
-## ⚔️ Próximas melhorias
-
-- 🎨 Melhorar a paleta de cores do modo claro
-- 🔔 Sistema de notificações/lembretes
-- 🔍 Pesquisa e filtros de tarefas
-- ⭐ Marcar tarefas como favoritas
-- 📂 Organização por categorias
 
 ---
 
@@ -45,8 +40,9 @@ Ao longo do desenvolvimento, novas funcionalidades foram adicionadas com base em
 
 - **HTML5**
 - **CSS3**
-- **JavaScript (ES6+)**
-- **localStorage**
+- **JavaScript (ES6+, módulos)**
+- **Firebase Authentication**
+- **Firebase Firestore**
 
 ---
 
@@ -58,8 +54,16 @@ listaDeTarefas/
 ├── assets/
 │   └── style.css
 │
+├── js/
+│   ├── auth.js
+│   ├── calendario-utils.js
+│   ├── firebase-config.js
+│   ├── menu.js
+│   ├── script.js
+│   ├── tarefas.js
+│   └── tema.js
+│
 ├── index.html
-├── script.js
 └── README.md
 ```
 
@@ -79,21 +83,17 @@ git clone https://github.com/GustavoHSS1/listaDeTarefas.git
 cd listaDeTarefas
 ```
 
-3. Abra o arquivo `index.html` no navegador.
+3. Abra o arquivo `index.html` no navegador (ou sirva com uma extensão tipo Live Server).
 
-> Não é necessário instalar dependências, pois o projeto utiliza apenas HTML, CSS e JavaScript.
+> Não é necessário instalar dependências — o projeto usa apenas HTML, CSS e JavaScript no navegador. É necessário, porém, ter um projeto Firebase próprio configurado em `js/firebase-config.js` para autenticação e banco de dados funcionarem.
 
 ---
 
 ## 📸 Preview
 
-> <p align="center">
+<p align="center">
   <img src="assets/img/image.png" alt="Preview da aplicação" width="700">
 </p>
-
-```md
-![Preview](assets/preview.png)
-```
 
 ---
 
@@ -102,9 +102,9 @@ cd listaDeTarefas
 Desenvolvido por **Gustavo Henrique** como projeto de estudo para praticar:
 
 - Manipulação do DOM
-- JavaScript moderno
+- JavaScript moderno (módulos ES6)
+- Autenticação e banco de dados com Firebase
 - Organização de código
-- Persistência de dados com `localStorage`
 - Desenvolvimento Front-end
 
 ---
